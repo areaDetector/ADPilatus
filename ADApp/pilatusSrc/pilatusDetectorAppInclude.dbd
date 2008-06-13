@@ -1,0 +1,7 @@
+include "base.dbd"
+include "pilatusDetectorSupport.dbd"
+include "ADSupport.dbd"
+include "pluginSupport.dbd"
+include "sscanSupport.dbd"
+include "asyn.dbd"
+include "asSupport.dbd"
