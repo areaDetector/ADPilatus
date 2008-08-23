@@ -17,6 +17,7 @@ extern "C" {
 #endif
 
 int pilatusDetectorConfig(const char *portName, const char *camserverPort,
+                          int maxSizeX, int maxSizeY,
                           int maxBuffers, size_t maxMemory);
 
 #ifdef __cplusplus
