@@ -7,16 +7,22 @@ include $(TOP)/configure/CONFIG
 #USR_CFLAGS += 
 #USR_CXXFLAGS +=
 
-LIBRARY_IOC = pilatusDetector
+# We only build on Linux and Solaris.  If your architecture has
+# libtiff, libjpeg, and libz you can add it here.
+LIBRARY_IOC_Linux = pilatusDetector
+LIBRARY_IOC_Solaris = pilatusDetector
+PROD_IOC_Linux += pilatusDetectorApp
+PROD_IOC_Solaris += pilatusDetectorApp
+
 LIB_SRCS += pilatusDetector.cpp
 LIB_SRCS += drvPilatusDetectorEpics.c
 LIB_LIBS += ADBase ADPlugin netCDF
-LIB_LIBS += sscan autosave
+LIB_LIBS += calc sscan autosave
 LIB_LIBS += asyn
 LIB_LIBS += $(EPICS_BASE_IOC_LIBS)
 
 #==================================
-PROD_IOC += pilatusDetectorApp
+
 # <name>.dbd will be created from <name>Include.dbd
 DBD += pilatusDetectorApp.dbd
 DBD += pilatusDetectorSupport.dbd
@@ -28,11 +34,12 @@ pilatusDetectorApp_SRCS_vxWorks += pilatusDetectorApp_registerRecordDeviceDriver
 # Add locally compiled object code
 pilatusDetectorApp_LIBS += pilatusDetector
 pilatusDetectorApp_LIBS += ADPlugin ADBase netCDF
-pilatusDetectorApp_LIBS += sscan autosave 
+pilatusDetectorApp_LIBS += calc sscan autosave 
 pilatusDetectorApp_LIBS += asyn
 pilatusDetectorApp_LIBS += $(EPICS_BASE_IOC_LIBS)
+pilatusDetectorApp_SYS_LIBS += tiff jpeg z
 
-pilatusDetectorCCDApp_SYS_LIBS_cygwin32 += rpc
+pilatusDetectorApp_SYS_LIBS_cygwin32 += rpc
 
 #=============================
 
