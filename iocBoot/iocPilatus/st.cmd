@@ -33,6 +33,29 @@ dbLoadRecords("$(AD)/ADApp/Db/NDROIN.template",      "P=13PIL1:,R=ROI1:5:,PORT=P
 dbLoadRecords("$(AD)/ADApp/Db/NDROIN.template",      "P=13PIL1:,R=ROI1:6:,PORT=PilROI,ADDR=3,TIMEOUT=1,HIST_SIZE=256")
 dbLoadRecords("$(AD)/ADApp/Db/NDROIN.template",      "P=13PIL1:,R=ROI1:7:,PORT=PilROI,ADDR=3,TIMEOUT=1,HIST_SIZE=256")
 
+# Create "fastSweep" drivers for the MCA record to do on-the-fly scanning of ROI data
+initFastSweep("PilSweepTotal", "PilROI", 8, 2048, "TOTAL_ARRAY", "CALLBACK_PERIOD")
+initFastSweep("PilSweepNet", "PilROI", 8, 2048, "NET_ARRAY", "CALLBACK_PERIOD")
+
+# Load MCA records for the fast sweep drivers
+dbLoadRecords("$(MCA)/mcaApp/Db/mca.db", "P=13PIL1:,M=ROI1:0:TotalArray,DTYP=asynMCA,NCHAN=2048,INP=@asyn(PilSweepTotal 0)")
+dbLoadRecords("$(MCA)/mcaApp/Db/mca.db", "P=13PIL1:,M=ROI1:1:TotalArray,DTYP=asynMCA,NCHAN=2048,INP=@asyn(PilSweepTotal 1)")
+dbLoadRecords("$(MCA)/mcaApp/Db/mca.db", "P=13PIL1:,M=ROI1:2:TotalArray,DTYP=asynMCA,NCHAN=2048,INP=@asyn(PilSweepTotal 2)")
+dbLoadRecords("$(MCA)/mcaApp/Db/mca.db", "P=13PIL1:,M=ROI1:3:TotalArray,DTYP=asynMCA,NCHAN=2048,INP=@asyn(PilSweepTotal 3)")
+dbLoadRecords("$(MCA)/mcaApp/Db/mca.db", "P=13PIL1:,M=ROI1:4:TotalArray,DTYP=asynMCA,NCHAN=2048,INP=@asyn(PilSweepTotal 4)")
+dbLoadRecords("$(MCA)/mcaApp/Db/mca.db", "P=13PIL1:,M=ROI1:5:TotalArray,DTYP=asynMCA,NCHAN=2048,INP=@asyn(PilSweepTotal 5)")
+dbLoadRecords("$(MCA)/mcaApp/Db/mca.db", "P=13PIL1:,M=ROI1:6:TotalArray,DTYP=asynMCA,NCHAN=2048,INP=@asyn(PilSweepTotal 6)")
+dbLoadRecords("$(MCA)/mcaApp/Db/mca.db", "P=13PIL1:,M=ROI1:7:TotalArray,DTYP=asynMCA,NCHAN=2048,INP=@asyn(PilSweepTotal 7)")
+
+dbLoadRecords("$(MCA)/mcaApp/Db/mca.db", "P=13PIL1:,M=ROI1:0:NetArray,DTYP=asynMCA,NCHAN=2048,INP=@asyn(PilSweepNet 0)")
+dbLoadRecords("$(MCA)/mcaApp/Db/mca.db", "P=13PIL1:,M=ROI1:1:NetArray,DTYP=asynMCA,NCHAN=2048,INP=@asyn(PilSweepNet 1)")
+dbLoadRecords("$(MCA)/mcaApp/Db/mca.db", "P=13PIL1:,M=ROI1:2:NetArray,DTYP=asynMCA,NCHAN=2048,INP=@asyn(PilSweepNet 2)")
+dbLoadRecords("$(MCA)/mcaApp/Db/mca.db", "P=13PIL1:,M=ROI1:3:NetArray,DTYP=asynMCA,NCHAN=2048,INP=@asyn(PilSweepNet 3)")
+dbLoadRecords("$(MCA)/mcaApp/Db/mca.db", "P=13PIL1:,M=ROI1:4:NetArray,DTYP=asynMCA,NCHAN=2048,INP=@asyn(PilSweepNet 4)")
+dbLoadRecords("$(MCA)/mcaApp/Db/mca.db", "P=13PIL1:,M=ROI1:5:NetArray,DTYP=asynMCA,NCHAN=2048,INP=@asyn(PilSweepNet 5)")
+dbLoadRecords("$(MCA)/mcaApp/Db/mca.db", "P=13PIL1:,M=ROI1:6:NetArray,DTYP=asynMCA,NCHAN=2048,INP=@asyn(PilSweepNet 6)")
+dbLoadRecords("$(MCA)/mcaApp/Db/mca.db", "P=13PIL1:,M=ROI1:7:NetArray,DTYP=asynMCA,NCHAN=2048,INP=@asyn(PilSweepNet 7)")
+
 
 #asynSetTraceMask("Pil",0,255)
 #asynSetTraceMask("PilROI",0,3)
