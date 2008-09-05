@@ -1,7 +1,7 @@
 < envPaths
 errlogInit(20000)
 
-dbLoadDatabase("$(AD)/dbd/pilatusDetectorApp.dbd")
+dbLoadDatabase("$(AREA_DETECTOR)/dbd/pilatusDetectorApp.dbd")
 pilatusDetectorApp_registerRecordDeviceDriver(pdbbase) 
 
 ###
@@ -12,26 +12,26 @@ asynOctetSetInputEos("camserver", 0, "\030")
 asynOctetSetOutputEos("camserver", 0, "\n")
 
 pilatusDetectorConfig("Pil", "camserver", 487, 195, 50, 200000000)
-dbLoadRecords("$(AD)/ADApp/Db/ADBase.template",   "P=13PIL1:,R=cam1:,PORT=Pil,ADDR=0,TIMEOUT=1")
-dbLoadRecords("$(AD)/ADApp/Db/pilatus.template","P=13PIL1:,R=cam1:,PORT=Pil,ADDR=0,TIMEOUT=1,CAMSERVER_PORT=camserver")
+dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/ADBase.template",   "P=13PIL1:,R=cam1:,PORT=Pil,ADDR=0,TIMEOUT=1")
+dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/pilatus.template","P=13PIL1:,R=cam1:,PORT=Pil,ADDR=0,TIMEOUT=1,CAMSERVER_PORT=camserver")
 
 # Create a standard arrays plugin
 drvNDStdArraysConfigure("PilImage", 5, 0, "Pil", 0, -1)
-dbLoadRecords("$(AD)/ADApp/Db/NDPluginBase.template","P=13PIL1:,R=image1:,PORT=PilImage,ADDR=0,TIMEOUT=1,NDARRAY_PORT=Pil,NDARRAY_ADDR=0")
-dbLoadRecords("$(AD)/ADApp/Db/NDStdArrays.template", "P=13PIL1:,R=image1:,PORT=PilImage,ADDR=0,TIMEOUT=1,SIZE=32,FTVL=LONG,NELEMENTS=94965")
+dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDPluginBase.template","P=13PIL1:,R=image1:,PORT=PilImage,ADDR=0,TIMEOUT=1,NDARRAY_PORT=Pil,NDARRAY_ADDR=0")
+dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDStdArrays.template", "P=13PIL1:,R=image1:,PORT=PilImage,ADDR=0,TIMEOUT=1,SIZE=32,FTVL=LONG,NELEMENTS=94965")
 
 # Create an ROI plugin
 drvNDROIConfigure("PilROI", 5, 0, "Pil", 0, 10, -1)
-dbLoadRecords("$(AD)/ADApp/Db/NDPluginBase.template","P=13PIL1:,R=ROI1:,  PORT=PilROI,ADDR=0,TIMEOUT=1,NDARRAY_PORT=Pil,NDARRAY_ADDR=0")
-dbLoadRecords("$(AD)/ADApp/Db/NDROI.template",       "P=13PIL1:,R=ROI1:,  PORT=PilROI,ADDR=0,TIMEOUT=1")
-dbLoadRecords("$(AD)/ADApp/Db/NDROIN.template",      "P=13PIL1:,R=ROI1:0:,PORT=PilROI,ADDR=0,TIMEOUT=1,HIST_SIZE=256")
-dbLoadRecords("$(AD)/ADApp/Db/NDROIN.template",      "P=13PIL1:,R=ROI1:1:,PORT=PilROI,ADDR=1,TIMEOUT=1,HIST_SIZE=256")
-dbLoadRecords("$(AD)/ADApp/Db/NDROIN.template",      "P=13PIL1:,R=ROI1:2:,PORT=PilROI,ADDR=2,TIMEOUT=1,HIST_SIZE=256")
-dbLoadRecords("$(AD)/ADApp/Db/NDROIN.template",      "P=13PIL1:,R=ROI1:3:,PORT=PilROI,ADDR=3,TIMEOUT=1,HIST_SIZE=256")
-dbLoadRecords("$(AD)/ADApp/Db/NDROIN.template",      "P=13PIL1:,R=ROI1:4:,PORT=PilROI,ADDR=3,TIMEOUT=1,HIST_SIZE=256")
-dbLoadRecords("$(AD)/ADApp/Db/NDROIN.template",      "P=13PIL1:,R=ROI1:5:,PORT=PilROI,ADDR=3,TIMEOUT=1,HIST_SIZE=256")
-dbLoadRecords("$(AD)/ADApp/Db/NDROIN.template",      "P=13PIL1:,R=ROI1:6:,PORT=PilROI,ADDR=3,TIMEOUT=1,HIST_SIZE=256")
-dbLoadRecords("$(AD)/ADApp/Db/NDROIN.template",      "P=13PIL1:,R=ROI1:7:,PORT=PilROI,ADDR=3,TIMEOUT=1,HIST_SIZE=256")
+dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDPluginBase.template","P=13PIL1:,R=ROI1:,  PORT=PilROI,ADDR=0,TIMEOUT=1,NDARRAY_PORT=Pil,NDARRAY_ADDR=0")
+dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDROI.template",       "P=13PIL1:,R=ROI1:,  PORT=PilROI,ADDR=0,TIMEOUT=1")
+dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDROIN.template",      "P=13PIL1:,R=ROI1:0:,PORT=PilROI,ADDR=0,TIMEOUT=1,HIST_SIZE=256")
+dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDROIN.template",      "P=13PIL1:,R=ROI1:1:,PORT=PilROI,ADDR=1,TIMEOUT=1,HIST_SIZE=256")
+dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDROIN.template",      "P=13PIL1:,R=ROI1:2:,PORT=PilROI,ADDR=2,TIMEOUT=1,HIST_SIZE=256")
+dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDROIN.template",      "P=13PIL1:,R=ROI1:3:,PORT=PilROI,ADDR=3,TIMEOUT=1,HIST_SIZE=256")
+dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDROIN.template",      "P=13PIL1:,R=ROI1:4:,PORT=PilROI,ADDR=3,TIMEOUT=1,HIST_SIZE=256")
+dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDROIN.template",      "P=13PIL1:,R=ROI1:5:,PORT=PilROI,ADDR=3,TIMEOUT=1,HIST_SIZE=256")
+dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDROIN.template",      "P=13PIL1:,R=ROI1:6:,PORT=PilROI,ADDR=3,TIMEOUT=1,HIST_SIZE=256")
+dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDROIN.template",      "P=13PIL1:,R=ROI1:7:,PORT=PilROI,ADDR=3,TIMEOUT=1,HIST_SIZE=256")
 
 # Create "fastSweep" drivers for the MCA record to do on-the-fly scanning of ROI data
 initFastSweep("PilSweepTotal", "PilROI", 8, 2048, "TOTAL_ARRAY", "CALLBACK_PERIOD")
@@ -66,7 +66,7 @@ dbLoadRecords("$(SSCAN)/sscanApp/Db/scan.db", "P=13PIL1:cam1:,MAXPTS1=2000,MAXPT
 
 set_requestfile_path("./")
 set_savefile_path("./autosave")
-set_requestfile_path("$(AD)/ADApp/Db")
+set_requestfile_path("$(AREA_DETECTOR)/ADApp/Db")
 set_requestfile_path("$(SSCAN)/sscanApp/Db")
 set_pass0_restoreFile("auto_settings.sav")
 set_pass1_restoreFile("auto_settings.sav")
