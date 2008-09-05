@@ -49,12 +49,12 @@
 #define FILE_READ_DELAY .01
 
 typedef enum {
-    AMInternal,
-    AMExternalEnable,
-    AMExternalTrigger,
-    AMMultipleExternalTrigger,
-    AMAlignment
-} PilatusAcquireMode;
+    TMInternal,
+    TMExternalEnable,
+    TMExternalTrigger,
+    TMMultipleExternalTrigger,
+    TMAlignment
+} PilatusTriggerMode;
 
 typedef struct {
     int badIndex;
@@ -112,10 +112,8 @@ public:
 /* If we have any private driver parameters they begin with ADFirstDriverParam and should end
    with ADLastDriverParam, which is used for setting the size of the parameter library table */
 typedef enum {
-    PilatusToCamserver 
+    PilatusDelayTime
         = ADFirstDriverParam,
-    PilatusFromCamserver,
-    PilatusDelayTime,
     PilatusThreshold,
     PilatusArmed,
     PilatusTiffTimeout,
@@ -128,8 +126,6 @@ typedef enum {
 } PilatusDetParam_t;
 
 static asynParamString_t PilatusDetParamString[] = {
-    {PilatusToCamserver,    "TO_CAMSERVER"},  
-    {PilatusFromCamserver,  "FROM_CAMSERVER"},
     {PilatusDelayTime,      "DELAY_TIME"},
     {PilatusThreshold,      "THRESHOLD"},
     {PilatusArmed,          "ARMED"},
@@ -437,17 +433,17 @@ asynStatus pilatusDetector::setAcquireParams()
 {
     int ival;
     double dval;
-    int acquireMode;
+    int triggerMode;
     
-    getIntegerParam(ADImageMode, &acquireMode);
+    getIntegerParam(ADTriggerMode, &triggerMode);
     
      /* When we change modes download all exposure parameters, since some modes
      * replace values with new parameters */
-    if (acquireMode == AMAlignment) {
+    if (triggerMode == TMAlignment) {
         setIntegerParam(ADNumImages, 1);
     }
     /* nexpf > 1 is only supported in External Enable mode */  
-    if (acquireMode != AMExternalEnable) {
+    if (triggerMode != TMExternalEnable) {
         setIntegerParam(ADNumExposures, 1);
     }
 
@@ -593,7 +589,7 @@ void pilatusDetector::pilatusTask()
     NDArray *pImage;
     double acquireTime, acquirePeriod;
     double readTiffTimeout;
-    int imageMode;
+    int triggerMode;
     epicsTimeStamp startTime;
     static char *functionName = "pilatusTask";
     char fullFileName[MAX_FILENAME_LEN];
@@ -633,7 +629,7 @@ void pilatusDetector::pilatusTask()
         getDoubleParam(addr, PilatusTiffTimeout, &readTiffTimeout);
         
         /* Get the acquisition parameters */
-        getIntegerParam(addr, ADImageMode, &imageMode);
+        getIntegerParam(addr, ADTriggerMode, &triggerMode);
         getIntegerParam(addr, ADNumImages, &numImages);
         
         acquiring = ADStatusAcquire;
@@ -642,24 +638,24 @@ void pilatusDetector::pilatusTask()
         /* Create the full filename */
         createFileName(sizeof(fullFileName), fullFileName);
         
-        switch (imageMode) {
-            case AMInternal:
+        switch (triggerMode) {
+            case TMInternal:
                 epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), 
                     "Exposure %s", fullFileName);
                 break;
-            case AMExternalEnable:
+            case TMExternalEnable:
                 epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), 
                     "ExtEnable %s", fullFileName);
                 break;
-            case AMExternalTrigger:
+            case TMExternalTrigger:
                 epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), 
                     "ExtTrigger %s", fullFileName);
                 break;
-            case AMMultipleExternalTrigger:
+            case TMMultipleExternalTrigger:
                 epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), 
                     "ExtMTrigger %s", fullFileName);
                 break;
-            case AMAlignment:
+            case TMAlignment:
                 getStringParam(addr, ADFilePath, sizeof(filePath), filePath);
                 epicsSnprintf(fullFileName, sizeof(fullFileName), "%salignment.tif", 
                               filePath);
@@ -751,7 +747,7 @@ void pilatusDetector::pilatusTask()
             epicsMutexLock(this->mutexId);
             
             if (numImages == 1) {
-                if (imageMode == AMAlignment) {
+                if (triggerMode == TMAlignment) {
                    epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), 
                         "Exposure %s", fullFileName);
                     /* Send the acquire command to camserver and wait for the 15OK response */
@@ -810,7 +806,7 @@ asynStatus pilatusDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
             writeCamserver(CAMSERVER_DEFAULT_TIMEOUT);
         }
         break;
-    case ADImageMode:
+    case ADTriggerMode:
     case ADNumImages:
     case ADNumExposures:
         setAcquireParams();
@@ -1016,12 +1012,11 @@ pilatusDetector::pilatusDetector(const char *portName, const char *camserverPort
     status |= setIntegerParam(addr, ADImageSize, 0);
     status |= setIntegerParam(addr, ADDataType,  NDUInt32);
     status |= setIntegerParam(addr, ADImageMode, ADImageContinuous);
+    status |= setIntegerParam(addr, ADTriggerMode, TMInternal);
     status |= setDoubleParam (addr, ADAcquireTime, .001);
     status |= setDoubleParam (addr, ADAcquirePeriod, .005);
     status |= setIntegerParam(addr, ADNumImages, 100);
 
-    status |= setStringParam (addr, PilatusToCamserver, "");
-    status |= setStringParam (addr, PilatusFromCamserver, "");
     status |= setIntegerParam(addr, PilatusArmed, 0);
     status |= setDoubleParam (addr, PilatusThreshold, 10.0);
     status |= setDoubleParam (addr, PilatusDelayTime, 0);
