@@ -62,9 +62,9 @@ typedef struct {
 } badPixel;
 
 
-static char *gainStrings[] = {"lowG", "midG", "highG", "uhighG"};
+static const char *gainStrings[] = {"lowG", "midG", "highG", "uhighG"};
 
-static char *driverName = "pilatusDetector";
+static const char *driverName = "pilatusDetector";
 
 class pilatusDetector : public ADDriver {
 public:
@@ -591,7 +591,7 @@ void pilatusDetector::pilatusTask()
     double readTiffTimeout;
     int triggerMode;
     epicsTimeStamp startTime;
-    static char *functionName = "pilatusTask";
+    const char *functionName = "pilatusTask";
     char fullFileName[MAX_FILENAME_LEN];
     char filePath[MAX_FILENAME_LEN];
     char statusMessage[MAX_MESSAGE_SIZE];
@@ -971,7 +971,7 @@ pilatusDetector::pilatusDetector(const char *portName, const char *camserverPort
 
 {
     int status = asynSuccess;
-    char *functionName = "pilatusDetector";
+    const char *functionName = "pilatusDetector";
     int addr=0;
     int dims[2];
 
