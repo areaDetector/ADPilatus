@@ -145,7 +145,6 @@ void pilatusDetector::readBadPixelFile(const char *badPixelFile)
     int i; 
     int xbad, ybad, xgood, ygood;
     int n;
-    int addr=0;
     FILE *file;
     int nx, ny;
     const char *functionName = "readBadPixelFile";
@@ -153,7 +152,7 @@ void pilatusDetector::readBadPixelFile(const char *badPixelFile)
 
     getIntegerParam(ADImageSizeX, &nx);
     getIntegerParam(ADImageSizeY, &ny);
-    setIntegerParam(addr, PilatusNumBadPixels, numBadPixels);
+    setIntegerParam(PilatusNumBadPixels, numBadPixels);
     if (strlen(badPixelFile) == 0) return;
     file = fopen(badPixelFile, "r");
     if (file == NULL) {
@@ -176,7 +175,7 @@ void pilatusDetector::readBadPixelFile(const char *badPixelFile)
         this->badPixelMap[i].replaceIndex = ygood*ny + xgood;
         numBadPixels++;
     }
-    setIntegerParam(addr, PilatusNumBadPixels, numBadPixels);
+    setIntegerParam(PilatusNumBadPixels, numBadPixels);
 }
 
 
@@ -184,16 +183,15 @@ void pilatusDetector::readFlatFieldFile(const char *flatFieldFile)
 {
     int i;
     int status;
-    int addr=0;
     int ngood;
     int minFlatField;
     epicsInt32 *pData;
     const char *functionName = "readFlatFieldFile";
     NDArrayInfo arrayInfo;
     
-    setIntegerParam(addr, PilatusFlatFieldValid, 0);
+    setIntegerParam(PilatusFlatFieldValid, 0);
     this->pFlatField->getInfo(&arrayInfo);
-    getIntegerParam(addr, PilatusMinFlatField, &minFlatField);
+    getIntegerParam(PilatusMinFlatField, &minFlatField);
     if (strlen(flatFieldFile) == 0) return;
     status = readTiff(flatFieldFile, NULL, 0., this->pFlatField);
     if (status) {
@@ -224,9 +222,9 @@ void pilatusDetector::readFlatFieldFile(const char *flatFieldFile)
     /* Must release the lock here, or we can get into a deadlock, because we can
      * block on the plugin lock, and the plugin can be calling us */
     epicsMutexUnlock(this->mutexId);
-    doCallbacksGenericPointer(this->pFlatField, NDArrayData, addr);
+    doCallbacksGenericPointer(this->pFlatField, NDArrayData, 0);
     epicsMutexLock(this->mutexId);
-    setIntegerParam(addr, PilatusFlatFieldValid, 1);
+    setIntegerParam(PilatusFlatFieldValid, 1);
 }
 
 
@@ -235,7 +233,6 @@ void pilatusDetector::makeMultipleFileFormat(const char *baseFileName)
     /* This function uses the code from camserver */
     char *p, *q;
     int fmt;
-    int addr=0;
     char mfTempFormat[MAX_FILENAME_LEN];
     char mfExtension[10];
     int numImages;
@@ -243,7 +240,7 @@ void pilatusDetector::makeMultipleFileFormat(const char *baseFileName)
     /* baseFilename has been built by the caller.
      * Copy to temp */
     strncpy(mfTempFormat, baseFileName, sizeof(mfTempFormat));
-    getIntegerParam(addr, ADNumImages, &numImages);
+    getIntegerParam(ADNumImages, &numImages);
     p = mfTempFormat + strlen(mfTempFormat) - 5; /* look for extension */
     if ( (q=strrchr(p, '.')) ) {
         strcpy(mfExtension, q);
@@ -580,7 +577,6 @@ void pilatusDetector::pilatusTask()
     /* This thread controls acquisition, reads TIFF files to get the image data, and
      * does the callbacks to send it to higher layers */
     int status = asynSuccess;
-    int addr=0;
     int imageCounter;
     int numImages;
     int multipleFileNextImage;  /* This is the next image number, starting at 0 */
@@ -588,7 +584,7 @@ void pilatusDetector::pilatusTask()
     ADStatus_t acquiring;
     NDArray *pImage;
     double acquireTime, acquirePeriod;
-    double readTiffTimeout;
+    double readTiffTimeout, timeout;
     int triggerMode;
     epicsTimeStamp startTime;
     const char *functionName = "pilatusTask";
@@ -596,6 +592,7 @@ void pilatusDetector::pilatusTask()
     char filePath[MAX_FILENAME_LEN];
     char statusMessage[MAX_MESSAGE_SIZE];
     int dims[2];
+    int arrayCallbacks;
     int flatFieldValid;
 
     epicsMutexLock(this->mutexId);
@@ -603,20 +600,20 @@ void pilatusDetector::pilatusTask()
     /* Loop forever */
     while (1) {
         /* Is acquisition active? */
-        getIntegerParam(addr, ADAcquire, &acquire);
+        getIntegerParam(ADAcquire, &acquire);
         
         /* If we are not acquiring then wait for a semaphore that is given when acquisition is started */
         if (!acquire) {
-            setStringParam(addr, ADStatusMessage, "Waiting for acquire command");
-            setIntegerParam(addr, ADStatus, ADStatusIdle);
-            callParamCallbacks(addr, addr);
+            setStringParam(ADStatusMessage, "Waiting for acquire command");
+            setIntegerParam(ADStatus, ADStatusIdle);
+            callParamCallbacks();
             /* Release the lock while we wait for an event that says acquire has started, then lock again */
             epicsMutexUnlock(this->mutexId);
             asynPrint(this->pasynUser, ASYN_TRACE_FLOW, 
                 "%s:%s: waiting for acquire to start\n", driverName, functionName);
             status = epicsEventWait(this->startEventId);
             epicsMutexLock(this->mutexId);
-            getIntegerParam(addr, ADAcquire, &acquire);
+            getIntegerParam(ADAcquire, &acquire);
         }
         
         /* We are acquiring. */
@@ -624,16 +621,16 @@ void pilatusDetector::pilatusTask()
         epicsTimeGetCurrent(&startTime);
         
         /* Get the exposure parameters */
-        getDoubleParam(addr, ADAcquireTime, &acquireTime);
-        getDoubleParam(addr, ADAcquirePeriod, &acquirePeriod);
-        getDoubleParam(addr, PilatusTiffTimeout, &readTiffTimeout);
+        getDoubleParam(ADAcquireTime, &acquireTime);
+        getDoubleParam(ADAcquirePeriod, &acquirePeriod);
+        getDoubleParam(PilatusTiffTimeout, &readTiffTimeout);
         
         /* Get the acquisition parameters */
-        getIntegerParam(addr, ADTriggerMode, &triggerMode);
-        getIntegerParam(addr, ADNumImages, &numImages);
+        getIntegerParam(ADTriggerMode, &triggerMode);
+        getIntegerParam(ADNumImages, &numImages);
         
         acquiring = ADStatusAcquire;
-        setIntegerParam(addr, ADStatus, acquiring);
+        setIntegerParam(ADStatus, acquiring);
 
         /* Create the full filename */
         createFileName(sizeof(fullFileName), fullFileName);
@@ -656,37 +653,34 @@ void pilatusDetector::pilatusTask()
                     "ExtMTrigger %s", fullFileName);
                 break;
             case TMAlignment:
-                getStringParam(addr, ADFilePath, sizeof(filePath), filePath);
+                getStringParam(ADFilePath, sizeof(filePath), filePath);
                 epicsSnprintf(fullFileName, sizeof(fullFileName), "%salignment.tif", 
                               filePath);
                 epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), 
                     "Exposure %s", fullFileName);
                 break;
         }
-        setStringParam(addr, ADStatusMessage, "Starting exposure");
+        setStringParam(ADStatusMessage, "Starting exposure");
         /* Send the acquire command to camserver and wait for the 15OK response */
         writeReadCamserver(2.0);
+        /* Open the shutter */
+        setShutter(1);
         /* Set the armed flag */
-        setIntegerParam(addr, PilatusArmed, 1);
+        setIntegerParam(PilatusArmed, 1);
         /* Create the format string for constructing file names for multi-image collection */
         makeMultipleFileFormat(fullFileName);
         multipleFileNextImage = 0;
         /* Call the callbacks to update any changes */
-        setStringParam(addr, ADFullFileName, fullFileName);
-        callParamCallbacks(addr, addr);
+        setStringParam(ADFullFileName, fullFileName);
+        callParamCallbacks();
 
         while (acquire) {
-            /* Get an image buffer from the pool */
-            getIntegerParam(addr, ADMaxSizeX, &dims[0]);
-            getIntegerParam(addr, ADMaxSizeY, &dims[1]);
-            pImage = this->pNDArrayPool->alloc(2, dims, NDInt32, 0, NULL);
-
             if (numImages == 1) {
                 /* For single frame or alignment mode need to wait for 7OK response from camserver
                  * saying acquisition is complete before trying to read file, else we get a
                  * recent but stale file. */
-                setStringParam(addr, ADStatusMessage, "Waiting for 7OK response");
-                callParamCallbacks(addr, addr);
+                setStringParam(ADStatusMessage, "Waiting for 7OK response");
+                callParamCallbacks();
                 /* We release the mutex when waiting for 7OK because this takes a long time and
                  * we need to allow abort operations to get through */
                 epicsMutexUnlock(this->mutexId);
@@ -695,7 +689,6 @@ void pilatusDetector::pilatusTask()
                 /* If there was an error jump to bottom of loop */
                 if (status) {
                     acquire = 0;
-                    pImage->release();
                     continue;
                 }
              } else {
@@ -703,49 +696,57 @@ void pilatusDetector::pilatusTask()
                 epicsSnprintf(fullFileName, sizeof(fullFileName), multipleFileFormat, 
                               multipleFileNumber);
             }
-            epicsSnprintf(statusMessage, sizeof(statusMessage), "Reading TIFF file %s", fullFileName);
-            setStringParam(addr, ADStatusMessage, statusMessage);
-            callParamCallbacks(addr, addr);
-            /* We release the mutex when calling readTiff, because this takes a long time and
-             * we need to allow abort operations to get through */
-            epicsMutexUnlock(this->mutexId);
-            status = readTiff(fullFileName, &startTime, acquireTime + readTiffTimeout, pImage); 
-            epicsMutexLock(this->mutexId);
-            /* If there was an error jump to bottom of loop */
-            if (status) {
-                acquire = 0;
-                pImage->release();
-                continue;
-            }
-
-            getIntegerParam(addr, PilatusFlatFieldValid, &flatFieldValid);
-            if (flatFieldValid) {
-                epicsInt32 *pData, *pFlat, i;
-                for (i=0, pData = (epicsInt32 *)pImage->pData, pFlat = (epicsInt32 *)this->pFlatField->pData;
-                     i<dims[0]*dims[1]; 
-                     i++, pData++, pFlat++) {
-                    *pData = (epicsInt32)((this->averageFlatField * *pData) / *pFlat);
-                }
-            } 
-            getIntegerParam(addr, ADImageCounter, &imageCounter);
+            getIntegerParam(ADArrayCallbacks, &arrayCallbacks);
+            getIntegerParam(ADImageCounter, &imageCounter);
             imageCounter++;
-            setIntegerParam(addr, ADImageCounter, imageCounter);
+            setIntegerParam(ADImageCounter, imageCounter);
             /* Call the callbacks to update any changes */
-            callParamCallbacks(addr, addr);
+            callParamCallbacks();
 
-            /* Put the frame number and time stamp into the buffer */
-            pImage->uniqueId = imageCounter;
-            pImage->timeStamp = startTime.secPastEpoch + startTime.nsec / 1.e9;
+            if (arrayCallbacks) {
+                /* Get an image buffer from the pool */
+                getIntegerParam(ADMaxSizeX, &dims[0]);
+                getIntegerParam(ADMaxSizeY, &dims[1]);
+                pImage = this->pNDArrayPool->alloc(2, dims, NDInt32, 0, NULL);
+                epicsSnprintf(statusMessage, sizeof(statusMessage), "Reading TIFF file %s", fullFileName);
+                setStringParam(ADStatusMessage, statusMessage);
+                callParamCallbacks();
+                /* We release the mutex when calling readTiff, because this takes a long time and
+                 * we need to allow abort operations to get through */
+                epicsMutexUnlock(this->mutexId);
+                status = readTiff(fullFileName, &startTime, acquireTime + readTiffTimeout, pImage); 
+                epicsMutexLock(this->mutexId);
+                /* If there was an error jump to bottom of loop */
+                if (status) {
+                    acquire = 0;
+                    pImage->release();
+                    continue;
+                }
 
-            /* Call the NDArray callback */
-            /* Must release the lock here, or we can get into a deadlock, because we can
-             * block on the plugin lock, and the plugin can be calling us */
-            epicsMutexUnlock(this->mutexId);
-            asynPrint(this->pasynUser, ASYN_TRACE_FLOW, 
-                 "%s:%s: calling NDArray callback\n", driverName, functionName);
-            doCallbacksGenericPointer(pImage, NDArrayData, addr);
-            epicsMutexLock(this->mutexId);
-            
+                getIntegerParam(PilatusFlatFieldValid, &flatFieldValid);
+                if (flatFieldValid) {
+                    epicsInt32 *pData, *pFlat, i;
+                    for (i=0, pData = (epicsInt32 *)pImage->pData, pFlat = (epicsInt32 *)this->pFlatField->pData;
+                         i<dims[0]*dims[1]; 
+                         i++, pData++, pFlat++) {
+                        *pData = (epicsInt32)((this->averageFlatField * *pData) / *pFlat);
+                    }
+                } 
+                /* Put the frame number and time stamp into the buffer */
+                pImage->uniqueId = imageCounter;
+                pImage->timeStamp = startTime.secPastEpoch + startTime.nsec / 1.e9;
+
+                /* Call the NDArray callback */
+                /* Must release the lock here, or we can get into a deadlock, because we can
+                 * block on the plugin lock, and the plugin can be calling us */
+                epicsMutexUnlock(this->mutexId);
+                asynPrint(this->pasynUser, ASYN_TRACE_FLOW, 
+                     "%s:%s: calling NDArray callback\n", driverName, functionName);
+                doCallbacksGenericPointer(pImage, NDArrayData, 0);
+                epicsMutexLock(this->mutexId);
+                /* Free the image buffer */
+                pImage->release();
+            }
             if (numImages == 1) {
                 if (triggerMode == TMAlignment) {
                    epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), 
@@ -761,21 +762,28 @@ void pilatusDetector::pilatusTask()
                 if (multipleFileNextImage == numImages) acquire = 0;
             }
             
-            /* Free the image buffer */
-            pImage->release();
         }
         /* We are done acquiring */
         /* Wait for the 7OK response from camserver in the case of multiple images */
         if ((numImages > 1) && (status == asynSuccess)) {
-            setStringParam(addr, ADStatusMessage, "Waiting for 7OK response");
-            callParamCallbacks(addr, addr);
-            readCamserver(readTiffTimeout);
+            /* If arrayCallbacks is 0we will have gone through the above loop without waiting
+             * for each TIFF file to be written.  Thus, we may need to wait a long time for
+             * the 7OK response.  
+             * If arrayCallbacks is 1 then the response should arrive fairly soon. */
+            if (arrayCallbacks) 
+                timeout = readTiffTimeout;
+            else 
+                timeout = numImages * acquireTime + readTiffTimeout;
+            setStringParam(ADStatusMessage, "Waiting for 7OK response");
+            callParamCallbacks();
+            readCamserver(timeout);
         }
-        setIntegerParam(addr, ADAcquire, 0);
-        setIntegerParam(addr, PilatusArmed, 0);
+        setShutter(0);
+        setIntegerParam(ADAcquire, 0);
+        setIntegerParam(PilatusArmed, 0);
 
         /* Call the callbacks to update any changes */
-        callParamCallbacks(addr, addr);
+        callParamCallbacks();
     }
 }
 
@@ -784,15 +792,14 @@ asynStatus pilatusDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
 {
     int function = pasynUser->reason;
     int adstatus;
-    int addr=0;
     asynStatus status = asynSuccess;
     const char *functionName = "writeInt32";
 
-    status = setIntegerParam(addr, function, value);
+    status = setIntegerParam(function, value);
 
     switch (function) {
     case ADAcquire:
-        getIntegerParam(addr, ADStatus, &adstatus);
+        getIntegerParam(ADStatus, &adstatus);
         if (value && (adstatus == ADStatusIdle)) {
             /* Send an event to wake up the Pilatus task.  */
             epicsEventSignal(this->startEventId);
@@ -811,10 +818,13 @@ asynStatus pilatusDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
     case ADNumExposures:
         setAcquireParams();
         break;
+    default: 
+        status = ADDriver::writeInt32(pasynUser, value);
+        break;
     }
             
     /* Do callbacks so higher layers see any changes */
-    callParamCallbacks(addr, addr);
+    callParamCallbacks();
     
     if (status) 
         asynPrint(pasynUser, ASYN_TRACE_ERROR, 
@@ -832,12 +842,11 @@ asynStatus pilatusDetector::writeFloat64(asynUser *pasynUser, epicsFloat64 value
 {
     int function = pasynUser->reason;
     asynStatus status = asynSuccess;
-    int addr=0;
     const char *functionName = "writeFloat64";
 
     /* Set the parameter and readback in the parameter library.  This may be overwritten when we read back the
      * status at the end, but that's OK */
-    status = setDoubleParam(addr, function, value);
+    status = setDoubleParam(function, value);
 
     /* Changing any of the following parameters requires recomputing the base image */
     switch (function) {
@@ -853,7 +862,7 @@ asynStatus pilatusDetector::writeFloat64(asynUser *pasynUser, epicsFloat64 value
     }
 
     /* Do callbacks so higher layers see any changes */
-    callParamCallbacks(addr, addr);
+    callParamCallbacks();
     if (status) 
         asynPrint(pasynUser, ASYN_TRACE_ERROR, 
               "%s:%s error, status=%d function=%d, value=%f\n", 
@@ -868,14 +877,12 @@ asynStatus pilatusDetector::writeFloat64(asynUser *pasynUser, epicsFloat64 value
 asynStatus pilatusDetector::writeOctet(asynUser *pasynUser, const char *value, 
                                     size_t nChars, size_t *nActual)
 {
-    int addr=0;
     int function = pasynUser->reason;
     asynStatus status = asynSuccess;
     const char *functionName = "writeOctet";
 
-    status = getAddress(pasynUser, functionName, &addr); if (status != asynSuccess) return(status);
     /* Set the parameter in the parameter library. */
-    status = (asynStatus)setStringParam(addr, function, (char *)value);
+    status = (asynStatus)setStringParam(function, (char *)value);
 
     switch(function) {
         case PilatusBadPixelFile:
@@ -889,7 +896,7 @@ asynStatus pilatusDetector::writeOctet(asynUser *pasynUser, const char *value,
     }
     
      /* Do callbacks so higher layers see any changes */
-    status = (asynStatus)callParamCallbacks(addr, addr);
+    status = (asynStatus)callParamCallbacks();
 
     if (status) 
         epicsSnprintf(pasynUser->errorMessage, pasynUser->errorMessageSize, 
@@ -939,14 +946,13 @@ asynStatus pilatusDetector::drvUserCreate(asynUser *pasynUser,
     
 void pilatusDetector::report(FILE *fp, int details)
 {
-    int addr=0;
 
     fprintf(fp, "Pilatus detector %s\n", this->portName);
     if (details > 0) {
         int nx, ny, dataType;
-        getIntegerParam(addr, ADSizeX, &nx);
-        getIntegerParam(addr, ADSizeY, &ny);
-        getIntegerParam(addr, ADDataType, &dataType);
+        getIntegerParam(ADSizeX, &nx);
+        getIntegerParam(ADSizeY, &ny);
+        getIntegerParam(ADDataType, &dataType);
         fprintf(fp, "  NX, NY:            %d  %d\n", nx, ny);
         fprintf(fp, "  Data type:         %d\n", dataType);
     }
@@ -972,7 +978,6 @@ pilatusDetector::pilatusDetector(const char *portName, const char *camserverPort
 {
     int status = asynSuccess;
     const char *functionName = "pilatusDetector";
-    int addr=0;
     int dims[2];
 
     /* Create the epicsEvents for signaling to the pilatus task when acquisition starts and stops */
@@ -1000,32 +1005,32 @@ pilatusDetector::pilatusDetector(const char *portName, const char *camserverPort
     status = pasynOctetSyncIO->connect(camserverPort, 0, &this->pasynUserCamserver, NULL);
 
     /* Set some default values for parameters */
-    status =  setStringParam (addr, ADManufacturer, "Dectris");
-    status |= setStringParam (addr, ADModel, "Pilatus");
-    status |= setIntegerParam(addr, ADMaxSizeX, maxSizeX);
-    status |= setIntegerParam(addr, ADMaxSizeY, maxSizeY);
-    status |= setIntegerParam(addr, ADSizeX, maxSizeX);
-    status |= setIntegerParam(addr, ADSizeX, maxSizeX);
-    status |= setIntegerParam(addr, ADSizeY, maxSizeY);
-    status |= setIntegerParam(addr, ADImageSizeX, maxSizeX);
-    status |= setIntegerParam(addr, ADImageSizeY, maxSizeY);
-    status |= setIntegerParam(addr, ADImageSize, 0);
-    status |= setIntegerParam(addr, ADDataType,  NDUInt32);
-    status |= setIntegerParam(addr, ADImageMode, ADImageContinuous);
-    status |= setIntegerParam(addr, ADTriggerMode, TMInternal);
-    status |= setDoubleParam (addr, ADAcquireTime, .001);
-    status |= setDoubleParam (addr, ADAcquirePeriod, .005);
-    status |= setIntegerParam(addr, ADNumImages, 100);
+    status =  setStringParam (ADManufacturer, "Dectris");
+    status |= setStringParam (ADModel, "Pilatus");
+    status |= setIntegerParam(ADMaxSizeX, maxSizeX);
+    status |= setIntegerParam(ADMaxSizeY, maxSizeY);
+    status |= setIntegerParam(ADSizeX, maxSizeX);
+    status |= setIntegerParam(ADSizeX, maxSizeX);
+    status |= setIntegerParam(ADSizeY, maxSizeY);
+    status |= setIntegerParam(ADImageSizeX, maxSizeX);
+    status |= setIntegerParam(ADImageSizeY, maxSizeY);
+    status |= setIntegerParam(ADImageSize, 0);
+    status |= setIntegerParam(ADDataType,  NDUInt32);
+    status |= setIntegerParam(ADImageMode, ADImageContinuous);
+    status |= setIntegerParam(ADTriggerMode, TMInternal);
+    status |= setDoubleParam (ADAcquireTime, .001);
+    status |= setDoubleParam (ADAcquirePeriod, .005);
+    status |= setIntegerParam(ADNumImages, 100);
 
-    status |= setIntegerParam(addr, PilatusArmed, 0);
-    status |= setDoubleParam (addr, PilatusThreshold, 10.0);
-    status |= setDoubleParam (addr, PilatusDelayTime, 0);
-    status |= setDoubleParam (addr, PilatusTiffTimeout, 20.);
-    status |= setStringParam (addr, PilatusBadPixelFile, "");
-    status |= setIntegerParam (addr, PilatusNumBadPixels, 0);
-    status |= setStringParam (addr, PilatusFlatFieldFile, "");
-    status |= setIntegerParam (addr, PilatusMinFlatField, 100);
-    status |= setIntegerParam (addr, PilatusFlatFieldValid, 0);
+    status |= setIntegerParam(PilatusArmed, 0);
+    status |= setDoubleParam (PilatusThreshold, 10.0);
+    status |= setDoubleParam (PilatusDelayTime, 0);
+    status |= setDoubleParam (PilatusTiffTimeout, 20.);
+    status |= setStringParam (PilatusBadPixelFile, "");
+    status |= setIntegerParam(PilatusNumBadPixels, 0);
+    status |= setStringParam (PilatusFlatFieldFile, "");
+    status |= setIntegerParam(PilatusMinFlatField, 100);
+    status |= setIntegerParam(PilatusFlatFieldValid, 0);
        
     if (status) {
         printf("%s: unable to set camera parameters\n", functionName);
