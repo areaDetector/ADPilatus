@@ -10,9 +10,9 @@ include $(TOP)/configure/CONFIG
 # We only build on Linux and Solaris.  If your architecture has
 # libtiff, libjpeg, and libz you can add it here.
 LIBRARY_IOC_Linux = pilatusDetector
-LIBRARY_IOC_Solaris = pilatusDetector
+LIBRARY_IOC_solaris = pilatusDetector
 PROD_IOC_Linux += pilatusDetectorApp
-PROD_IOC_Solaris += pilatusDetectorApp
+PROD_IOC_solaris += pilatusDetectorApp
 
 LIB_SRCS += pilatusDetector.cpp
 LIB_SRCS += drvPilatusDetectorEpics.c
