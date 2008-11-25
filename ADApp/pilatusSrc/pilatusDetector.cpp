@@ -891,6 +891,9 @@ asynStatus pilatusDetector::writeOctet(asynUser *pasynUser, const char *value,
         case PilatusFlatFieldFile:
             this->readFlatFieldFile(value);
             break;
+        case ADFilePath:
+            epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "imgpath %s", value);
+            writeCamserver(CAMSERVER_DEFAULT_TIMEOUT);
         default:
             break;
     }
