@@ -100,7 +100,6 @@ public:
     epicsEventId stopEventId;
     char toCamserver[MAX_MESSAGE_SIZE];
     char fromCamserver[MAX_MESSAGE_SIZE];
-    NDArray *pData;
     NDArray *pFlatField;
     char multipleFileFormat[MAX_FILENAME_LEN];
     int multipleFileNumber;
@@ -122,7 +121,7 @@ typedef enum {
     PilatusFlatFieldFile,
     PilatusMinFlatField,
     PilatusFlatFieldValid,
-    ADLastDriverParam,
+    ADLastDriverParam
 } PilatusDetParam_t;
 
 static asynParamString_t PilatusDetParamString[] = {
@@ -156,7 +155,7 @@ void pilatusDetector::readBadPixelFile(const char *badPixelFile)
     if (strlen(badPixelFile) == 0) return;
     file = fopen(badPixelFile, "r");
     if (file == NULL) {
-        asynPrint(pasynUser, ASYN_TRACE_ERROR,
+        asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
             "%s::%s, cannot open file %s\n",
             driverName, functionName, badPixelFile);
         return;
@@ -166,7 +165,7 @@ void pilatusDetector::readBadPixelFile(const char *badPixelFile)
                   &xbad, &ybad, &xgood, &ygood);
         if (n == EOF) break;
         if (n != 4) {
-            asynPrint(pasynUser, ASYN_TRACE_ERROR,
+            asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
                 "%s::%s, too few items =%d, should be 4\n",
                 driverName, functionName, n);
             return;
@@ -195,7 +194,7 @@ void pilatusDetector::readFlatFieldFile(const char *flatFieldFile)
     if (strlen(flatFieldFile) == 0) return;
     status = readTiff(flatFieldFile, NULL, 0., this->pFlatField);
     if (status) {
-        asynPrint(pasynUser, ASYN_TRACE_ERROR,
+        asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
             "%s::%s, error reading flat field file %s\n",
             driverName, functionName, flatFieldFile);
         return;
@@ -320,7 +319,7 @@ asynStatus pilatusDetector::readTiff(const char *fileName, epicsTimeStamp *pStar
              * We don't do this check if timeout==0, which is used for reading flat field files */
             status = fstat(fd, &statBuff);
             if (status){
-                asynPrint(pasynUser, ASYN_TRACE_ERROR,
+                asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
                     "%s::%s error calling fstat, errno=%d %s\n",
                     driverName, functionName, errno, fileName);
                 close(fd);
@@ -341,11 +340,11 @@ asynStatus pilatusDetector::readTiff(const char *fileName, epicsTimeStamp *pStar
         deltaTime = epicsTimeDiffInSeconds(&tCheck, &tStart);
     }
     if (fd < 0) {
-        asynPrint(pasynUser, ASYN_TRACE_ERROR,
+        asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
             "%s::%s timeout waiting for file to be created %s\n",
             driverName, functionName, fileName);
         if (fileExists) {
-            asynPrint(pasynUser, ASYN_TRACE_ERROR,
+            asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
                 "  file exists but is more than 10 seconds old, possible clock synchronization problem\n");
         } 
         return(asynError);
@@ -365,14 +364,14 @@ asynStatus pilatusDetector::readTiff(const char *fileName, epicsTimeStamp *pStar
         /* Do some basic checking that the image size is what we expect */
         status = TIFFGetField(tiff, TIFFTAG_IMAGEWIDTH, &uval);
         if (uval != (epicsUInt32)pImage->dims[0].size) {
-            asynPrint(pasynUser, ASYN_TRACE_ERROR,
+            asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
                 "%s::%s, image width incorrect =%u, should be %d\n",
                 driverName, functionName, uval, pImage->dims[0].size);
             goto retry;
         }
         status = TIFFGetField(tiff, TIFFTAG_IMAGELENGTH, &uval);
         if (uval != (epicsUInt32)pImage->dims[1].size) {
-            asynPrint(pasynUser, ASYN_TRACE_ERROR,
+            asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
                 "%s::%s, image length incorrect =%u, should be %d\n",
                 driverName, functionName, uval, pImage->dims[1].size);
             goto retry;
@@ -385,7 +384,7 @@ asynStatus pilatusDetector::readTiff(const char *fileName, epicsTimeStamp *pStar
             if (size == -1) {
                 /* There was an error reading the file.  Most commonly this is because the file
                  * was not yet completely written.  Try again. */
-                asynPrint(pasynUser, ASYN_TRACE_FLOW,
+                asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW,
                     "%s::%s, error reading TIFF file %s\n",
                     driverName, functionName, fileName);
                 goto retry;
@@ -395,7 +394,7 @@ asynStatus pilatusDetector::readTiff(const char *fileName, epicsTimeStamp *pStar
         }
         if (totalSize != pImage->dataSize) {
             status = asynError;
-            asynPrint(pasynUser, ASYN_TRACE_ERROR,
+            asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
                 "%s::%s, file size incorrect =%d, should be %d\n",
                 driverName, functionName, totalSize, pImage->dataSize);
             goto retry;
@@ -488,16 +487,15 @@ asynStatus pilatusDetector::writeCamserver(double timeout)
 {
     size_t nwrite;
     asynStatus status;
-    asynUser *pasynUser = this->pasynUserCamserver;
     const char *functionName="writeCamserver";
 
     /* Flush any stale input, since the next operation is likely to be a read */
-    status = pasynOctetSyncIO->flush(pasynUser);
-    status = pasynOctetSyncIO->write(pasynUser, this->toCamserver,
+    status = pasynOctetSyncIO->flush(this->pasynUserCamserver);
+    status = pasynOctetSyncIO->write(this->pasynUserCamserver, this->toCamserver,
                                      strlen(this->toCamserver), timeout,
                                      &nwrite);
                                         
-    if (status) asynPrint(pasynUser, ASYN_TRACE_ERROR,
+    if (status) asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
                     "%s:%s, status=%d, sent\n%s\n",
                     driverName, functionName, status, this->toCamserver);
 
@@ -609,7 +607,7 @@ void pilatusDetector::pilatusTask()
             callParamCallbacks();
             /* Release the lock while we wait for an event that says acquire has started, then lock again */
             epicsMutexUnlock(this->mutexId);
-            asynPrint(this->pasynUser, ASYN_TRACE_FLOW, 
+            asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
                 "%s:%s: waiting for acquire to start\n", driverName, functionName);
             status = epicsEventWait(this->startEventId);
             epicsMutexLock(this->mutexId);
@@ -740,7 +738,7 @@ void pilatusDetector::pilatusTask()
                 /* Must release the lock here, or we can get into a deadlock, because we can
                  * block on the plugin lock, and the plugin can be calling us */
                 epicsMutexUnlock(this->mutexId);
-                asynPrint(this->pasynUser, ASYN_TRACE_FLOW, 
+                asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
                      "%s:%s: calling NDArray callback\n", driverName, functionName);
                 doCallbacksGenericPointer(pImage, NDArrayData, 0);
                 epicsMutexLock(this->mutexId);
@@ -976,7 +974,7 @@ pilatusDetector::pilatusDetector(const char *portName, const char *camserverPort
                                 int maxBuffers, size_t maxMemory)
 
     : ADDriver(portName, 1, ADLastDriverParam, maxBuffers, maxMemory, 0, 0), 
-      imagesRemaining(0), pData(NULL)
+      imagesRemaining(0)
 
 {
     int status = asynSuccess;
@@ -1000,7 +998,6 @@ pilatusDetector::pilatusDetector(const char *portName, const char *camserverPort
     /* Allocate the raw buffer we use to readTiff files.  Only do this once */
     dims[0] = maxSizeX;
     dims[1] = maxSizeY;
-    this->pData = this->pNDArrayPool->alloc(2, dims, NDUInt32, 0, NULL);
     /* Allocate the raw buffer we use for flat fields. */
     this->pFlatField = this->pNDArrayPool->alloc(2, dims, NDUInt32, 0, NULL);
     
