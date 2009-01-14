@@ -37,9 +37,9 @@ pilatusDetectorApp_LIBS += ADPlugin ADBase netCDF
 pilatusDetectorApp_LIBS += calc sscan autosave mca
 pilatusDetectorApp_LIBS += asyn
 pilatusDetectorApp_LIBS += $(EPICS_BASE_IOC_LIBS)
-#pilatusDetectorApp_SYS_LIBS += tiff jpeg z
-LDLIBS += -ltiff -ljpeg -lz
+pilatusDetectorApp_SYS_LIBS += tiff jpeg z
 
+pilatusDetectorApp_LIBS_Linux += PvAPI
 pilatusDetectorApp_SYS_LIBS_cygwin32 += rpc
 
 #=============================
