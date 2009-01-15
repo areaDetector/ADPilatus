@@ -17,7 +17,7 @@ PROD_IOC_solaris += pilatusDetectorApp
 LIB_SRCS += pilatusDetector.cpp
 LIB_SRCS += drvPilatusDetectorEpics.c
 LIB_LIBS += NDPlugin ADBase netCDF
-LIB_LIBS += calc sscan autosave mca
+LIB_LIBS += calc busy sscan autosave mca
 LIB_LIBS += asyn
 LIB_LIBS += $(EPICS_BASE_IOC_LIBS)
 LIB_SYS_LIBS += tiff jpeg z
@@ -35,7 +35,7 @@ pilatusDetectorApp_SRCS_vxWorks += pilatusDetectorApp_registerRecordDeviceDriver
 # Add locally compiled object code
 pilatusDetectorApp_LIBS += pilatusDetector
 pilatusDetectorApp_LIBS += NDPlugin ADBase netCDF
-pilatusDetectorApp_LIBS += calc sscan autosave mca
+pilatusDetectorApp_LIBS += calc busy sscan autosave mca
 pilatusDetectorApp_LIBS += asyn
 pilatusDetectorApp_LIBS += $(EPICS_BASE_IOC_LIBS)
 pilatusDetectorApp_SYS_LIBS += tiff jpeg z
