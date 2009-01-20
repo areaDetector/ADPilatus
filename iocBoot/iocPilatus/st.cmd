@@ -22,7 +22,7 @@ dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDPluginBase.template","P=13PIL1:,R=ima
 dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDStdArrays.template", "P=13PIL1:,R=image1:,PORT=PilImage,ADDR=0,TIMEOUT=1,SIZE=32,FTVL=LONG,NELEMENTS=94965")
 
 # Create an ROI plugin
-drvNDROIConfigure("PilROI", 5, 0, "Pil", 0, 10, -1)
+drvNDROIConfigure("PilROI", 5, 0, "Pil", 0, 10, 20, -1)
 dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDPluginBase.template","P=13PIL1:,R=ROI1:,  PORT=PilROI,ADDR=0,TIMEOUT=1,NDARRAY_PORT=Pil,NDARRAY_ADDR=0")
 dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDROI.template",       "P=13PIL1:,R=ROI1:,  PORT=PilROI,ADDR=0,TIMEOUT=1")
 dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDROIN.template",      "P=13PIL1:,R=ROI1:0:,PORT=PilROI,ADDR=0,TIMEOUT=1,HIST_SIZE=256")
