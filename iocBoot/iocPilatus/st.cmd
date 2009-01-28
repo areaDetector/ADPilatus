@@ -13,8 +13,8 @@ asynOctetSetOutputEos("camserver", 0, "\n")
 
 pilatusDetectorConfig("Pil", "camserver", 487, 195, 50, 200000000)
 dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/ADBase.template", "P=13PIL1:,R=cam1:,PORT=Pil,ADDR=0,TIMEOUT=1")
-dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/pilatus.template","P=13PIL1:,R=cam1:,PORT=Pil,ADDR=0,TIMEOUT=1,CAMSERVER_PORT=camserver")
 dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDFile.template", "P=13PIL1:,R=cam1:,PORT=Pil,ADDR=0,TIMEOUT=1")
+dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/pilatus.template","P=13PIL1:,R=cam1:,PORT=Pil,ADDR=0,TIMEOUT=1,CAMSERVER_PORT=camserver")
 
 # Create a standard arrays plugin
 drvNDStdArraysConfigure("PilImage", 5, 0, "Pil", 0, -1)
