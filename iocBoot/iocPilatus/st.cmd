@@ -63,7 +63,7 @@ dbLoadRecords("$(MCA)/mcaApp/Db/mca.db", "P=13PIL1:,M=ROI1:7:NetArray,DTYP=asynM
 #asynSetTraceIOMask("PilROI",0,4)
 
 # Load scan records for scanning energy threshold
-dbLoadRecords("$(SSCAN)/sscanApp/Db/scan.db", "P=13PIL1:cam1:,MAXPTS1=2000,MAXPTS2=200,MAXPTS3=20,MAXPTS4=10,MAXPTSH=10")
+dbLoadRecords("$(SSCAN)/sscanApp/Db/scan.db", "P=13PIL1:,MAXPTS1=2000,MAXPTS2=200,MAXPTS3=20,MAXPTS4=10,MAXPTSH=10")
 
 set_requestfile_path("./")
 set_savefile_path("./autosave")
