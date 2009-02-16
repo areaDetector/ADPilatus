@@ -70,7 +70,8 @@ class pilatusDetector : public ADDriver {
 public:
     pilatusDetector(const char *portName, const char *camserverPort,
                     int maxSizeX, int maxSizeY,
-                    int maxBuffers, size_t maxMemory);
+                    int maxBuffers, size_t maxMemory,
+                    int priority, int stackSize);
                  
     /* These are the methods that we override from ADDriver */
     virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
@@ -963,17 +964,23 @@ void pilatusDetector::report(FILE *fp, int details)
 
 extern "C" int pilatusDetectorConfig(const char *portName, const char *camserverPort, 
                                     int maxSizeX, int maxSizeY,
-                                    int maxBuffers, size_t maxMemory)
+                                    int maxBuffers, size_t maxMemory,
+                                    int priority, int stackSize)
 {
-    new pilatusDetector(portName, camserverPort, maxSizeX, maxSizeY, maxBuffers, maxMemory);
+    new pilatusDetector(portName, camserverPort, maxSizeX, maxSizeY, maxBuffers, maxMemory,
+                        priority, stackSize);
     return(asynSuccess);
 }
 
 pilatusDetector::pilatusDetector(const char *portName, const char *camserverPort,
                                 int maxSizeX, int maxSizeY,
-                                int maxBuffers, size_t maxMemory)
+                                int maxBuffers, size_t maxMemory,
+                                int priority, int stackSize)
 
-    : ADDriver(portName, 1, ADLastDriverParam, maxBuffers, maxMemory, 0, 0), 
+    : ADDriver(portName, 1, ADLastDriverParam, maxBuffers, maxMemory,
+               0, 0,             /* No interfaces beyond those set in ADDriver.cpp */
+               ASYN_CANBLOCK, 1, /* ASYN_CANBLOCK=1, ASYN_MULTIDEVICE=0, autoConnect=1 */
+               priority, stackSize),
       imagesRemaining(0)
 
 {

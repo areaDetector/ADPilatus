@@ -27,17 +27,21 @@ static const iocshArg pilatusDetectorConfigArg2 = {"maxSizeX", iocshArgInt};
 static const iocshArg pilatusDetectorConfigArg3 = {"maxSizeY", iocshArgInt};
 static const iocshArg pilatusDetectorConfigArg4 = {"maxBuffers", iocshArgInt};
 static const iocshArg pilatusDetectorConfigArg5 = {"maxMemory", iocshArgInt};
+static const iocshArg pilatusDetectorConfigArg6 = {"priority", iocshArgInt};
+static const iocshArg pilatusDetectorConfigArg7 = {"stackSize", iocshArgInt};
 static const iocshArg * const pilatusDetectorConfigArgs[] =  {&pilatusDetectorConfigArg0,
                                                               &pilatusDetectorConfigArg1,
                                                               &pilatusDetectorConfigArg2,
                                                               &pilatusDetectorConfigArg3,
                                                               &pilatusDetectorConfigArg4,
-                                                              &pilatusDetectorConfigArg5};
-static const iocshFuncDef configPilatusDetector = {"pilatusDetectorConfig", 6, pilatusDetectorConfigArgs};
+                                                              &pilatusDetectorConfigArg5,
+                                                              &pilatusDetectorConfigArg6,
+                                                              &pilatusDetectorConfigArg7};
+static const iocshFuncDef configPilatusDetector = {"pilatusDetectorConfig", 8, pilatusDetectorConfigArgs};
 static void configPilatusDetectorCallFunc(const iocshArgBuf *args)
 {
     pilatusDetectorConfig(args[0].sval, args[1].sval, args[2].ival,  args[3].ival,  
-                          args[4].ival, args[5].ival);
+                          args[4].ival, args[5].ival, args[6].ival,  args[7].ival);
 }
 
 
