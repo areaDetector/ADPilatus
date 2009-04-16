@@ -221,9 +221,9 @@ void pilatusDetector::readFlatFieldFile(const char *flatFieldFile)
     /* Call the NDArray callback */
     /* Must release the lock here, or we can get into a deadlock, because we can
      * block on the plugin lock, and the plugin can be calling us */
-    epicsMutexUnlock(this->mutexId);
+    this->unlock();
     doCallbacksGenericPointer(this->pFlatField, NDArrayData, 0);
-    epicsMutexLock(this->mutexId);
+    this->lock();
     setIntegerParam(PilatusFlatFieldValid, 1);
 }
 
@@ -594,7 +594,7 @@ void pilatusDetector::pilatusTask()
     int arrayCallbacks;
     int flatFieldValid;
 
-    epicsMutexLock(this->mutexId);
+    this->lock();
 
     /* Loop forever */
     while (1) {
@@ -607,11 +607,11 @@ void pilatusDetector::pilatusTask()
             setIntegerParam(ADStatus, ADStatusIdle);
             callParamCallbacks();
             /* Release the lock while we wait for an event that says acquire has started, then lock again */
-            epicsMutexUnlock(this->mutexId);
+            this->unlock();
             asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
                 "%s:%s: waiting for acquire to start\n", driverName, functionName);
             status = epicsEventWait(this->startEventId);
-            epicsMutexLock(this->mutexId);
+            this->lock();
             getIntegerParam(ADAcquire, &acquire);
         }
         
@@ -682,9 +682,9 @@ void pilatusDetector::pilatusTask()
                 callParamCallbacks();
                 /* We release the mutex when waiting for 7OK because this takes a long time and
                  * we need to allow abort operations to get through */
-                epicsMutexUnlock(this->mutexId);
+                this->unlock();
                 status = readCamserver(acquireTime + readTiffTimeout);
-                epicsMutexLock(this->mutexId);
+                this->lock();
                 /* If there was an error jump to bottom of loop */
                 if (status) {
                     acquire = 0;
@@ -712,9 +712,9 @@ void pilatusDetector::pilatusTask()
                 callParamCallbacks();
                 /* We release the mutex when calling readTiff, because this takes a long time and
                  * we need to allow abort operations to get through */
-                epicsMutexUnlock(this->mutexId);
+                this->unlock();
                 status = readTiff(fullFileName, &startTime, acquireTime + readTiffTimeout, pImage); 
-                epicsMutexLock(this->mutexId);
+                this->lock();
                 /* If there was an error jump to bottom of loop */
                 if (status) {
                     acquire = 0;
@@ -738,11 +738,11 @@ void pilatusDetector::pilatusTask()
                 /* Call the NDArray callback */
                 /* Must release the lock here, or we can get into a deadlock, because we can
                  * block on the plugin lock, and the plugin can be calling us */
-                epicsMutexUnlock(this->mutexId);
+                this->unlock();
                 asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
                      "%s:%s: calling NDArray callback\n", driverName, functionName);
                 doCallbacksGenericPointer(pImage, NDArrayData, 0);
-                epicsMutexLock(this->mutexId);
+                this->lock();
                 /* Free the image buffer */
                 pImage->release();
             }
