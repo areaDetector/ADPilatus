@@ -49,6 +49,7 @@
 /** Time between checking to see if TIFF file is complete */
 #define FILE_READ_DELAY .01
 
+/** Trigger modes */
 typedef enum {
     TMInternal,
     TMExternalEnable,
@@ -57,6 +58,7 @@ typedef enum {
     TMAlignment
 } PilatusTriggerMode;
 
+/** Bad pixel structure for Pilatus detector */
 typedef struct {
     int badIndex;
     int replaceIndex;
