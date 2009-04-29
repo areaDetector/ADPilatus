@@ -39,13 +39,14 @@
 
 #include "drvPilatusDetector.h"
 
-#define MAX_MESSAGE_SIZE 256 /* Messages to/from camserver */
+/** Messages to/from camserver */
+#define MAX_MESSAGE_SIZE 256 
 #define MAX_FILENAME_LEN 256
 #define MAX_BAD_PIXELS 100
-/* Time to poll when reading from camserver */
+/** Time to poll when reading from camserver */
 #define ASYN_POLL_TIME .01 
 #define CAMSERVER_DEFAULT_TIMEOUT 1.0 
-/* Time between checking to see if TIFF file is complete */
+/** Time between checking to see if TIFF file is complete */
 #define FILE_READ_DELAY .01
 
 typedef enum {
@@ -66,6 +67,7 @@ static const char *gainStrings[] = {"lowG", "midG", "highG", "uhighG"};
 
 static const char *driverName = "pilatusDetector";
 
+/** Driver for Dectris Pilatus pixel array detectors using their camserver server over TCP/IP socket */
 class pilatusDetector : public ADDriver {
 public:
     pilatusDetector(const char *portName, const char *camserverPort,
@@ -81,9 +83,10 @@ public:
     virtual asynStatus drvUserCreate(asynUser *pasynUser, const char *drvInfo, 
                                      const char **pptypeName, size_t *psize);
     void report(FILE *fp, int details);
-                                        
+    void pilatusTask(); /* This should be private but is called from C so must be public */
+ 
+ private:                                       
     /* These are the methods that are new to this class */
-    void pilatusTask();
     void abortAcquisition();
     void makeMultipleFileFormat(const char *baseFileName);
     asynStatus readTiff(const char *fileName, epicsTimeStamp *pStartTime, double timeout, NDArray *pImage);
@@ -109,8 +112,7 @@ public:
     double averageFlatField;
 };
 
-/* If we have any private driver parameters they begin with ADFirstDriverParam and should end
-   with ADLastDriverParam, which is used for setting the size of the parameter library table */
+/** Driver-specific parameters for the Pilatus driver */
 typedef enum {
     PilatusDelayTime
         = ADFirstDriverParam,
@@ -280,7 +282,7 @@ void pilatusDetector::makeMultipleFileFormat(const char *baseFileName)
 }
 
 
-/* This function reads TIFF files using libTiff.  It is not intended to be general,
+/** This function reads TIFF files using libTiff.  It is not intended to be general,
  * it is intended to read the TIFF files that camserver creates.  It checks to make sure
  * that the creation time of the file is after a start time passed to it, to force it to
  * wait for a new file to be created.
@@ -571,10 +573,10 @@ static void pilatusTaskC(void *drvPvt)
     pPvt->pilatusTask();
 }
 
+/** This thread controls acquisition, reads TIFF files to get the image data, and
+  * does the callbacks to send it to higher layers */
 void pilatusDetector::pilatusTask()
 {
-    /* This thread controls acquisition, reads TIFF files to get the image data, and
-     * does the callbacks to send it to higher layers */
     int status = asynSuccess;
     int imageCounter;
     int numImages;
@@ -787,6 +789,11 @@ void pilatusDetector::pilatusTask()
 }
 
 
+/** Called when asyn clients call pasynInt32->write().
+  * This function performs actions for some parameters, including ADAcquire, ADTriggerMode, etc.
+  * For all parameters it sets the value in the parameter library and calls any registered callbacks..
+  * \param[in] pasynUser pasynUser structure that encodes the reason and address.
+  * \param[in] value Value to write. */
 asynStatus pilatusDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
 {
     int function = pasynUser->reason;
@@ -837,6 +844,11 @@ asynStatus pilatusDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
 }
 
 
+/** Called when asyn clients call pasynFloat64->write().
+  * This function performs actions for some parameters, including ADAcquireTime, ADGain, etc.
+  * For all parameters it sets the value in the parameter library and calls any registered callbacks..
+  * \param[in] pasynUser pasynUser structure that encodes the reason and address.
+  * \param[in] value Value to write. */
 asynStatus pilatusDetector::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
 {
     int function = pasynUser->reason;
@@ -873,6 +885,13 @@ asynStatus pilatusDetector::writeFloat64(asynUser *pasynUser, epicsFloat64 value
     return status;
 }
 
+/** Called when asyn clients call pasynOctet->write().
+  * This function performs actions for some parameters, including PilatusBadPixelFile, ADFilePath, etc.
+  * For all parameters it sets the value in the parameter library and calls any registered callbacks..
+  * \param[in] pasynUser pasynUser structure that encodes the reason and address.
+  * \param[in] value Address of the string to write.
+  * \param[in] nChars Number of characters to write.
+  * \param[out] nActual Number of characters actually written. */
 asynStatus pilatusDetector::writeOctet(asynUser *pasynUser, const char *value, 
                                     size_t nChars, size_t *nActual)
 {
@@ -914,38 +933,36 @@ asynStatus pilatusDetector::writeOctet(asynUser *pasynUser, const char *value,
 
 
 
-/* asynDrvUser routines */
+/** Sets pasynUser->reason to one of the enum values for the parameters defined for
+  * this class if the drvInfo field matches one the strings defined for it.
+  * If the parameter is not recognized by this class then calls ADDriver::drvUserCreate.
+  * Uses asynPortDriver::drvUserCreateParam.
+  * \param[in] pasynUser pasynUser structure that driver modifies
+  * \param[in] drvInfo String containing information about what driver function is being referenced
+  * \param[out] pptypeName Location in which driver puts a copy of drvInfo.
+  * \param[out] psize Location where driver puts size of param 
+  * \return Returns asynSuccess if a matching string was found, asynError if not found. */
 asynStatus pilatusDetector::drvUserCreate(asynUser *pasynUser,
-                                      const char *drvInfo, 
-                                      const char **pptypeName, size_t *psize)
+                                       const char *drvInfo, 
+                                       const char **pptypeName, size_t *psize)
 {
     asynStatus status;
-    int param;
-    const char *functionName = "drvUserCreate";
-
-    /* See if this is one of our standard parameters */
-    status = findParam(PilatusDetParamString, NUM_PILATUS_DET_PARAMS, 
-                       drvInfo, &param);
-                                
-    if (status == asynSuccess) {
-        pasynUser->reason = param;
-        if (pptypeName) {
-            *pptypeName = epicsStrDup(drvInfo);
-        }
-        if (psize) {
-            *psize = sizeof(param);
-        }
-        asynPrint(pasynUser, ASYN_TRACE_FLOW,
-                  "%s:%s: drvInfo=%s, param=%d\n", 
-                  driverName, functionName, drvInfo, param);
-        return(asynSuccess);
-    }
+    //const char *functionName = "drvUserCreate";
     
-    /* If not, then see if it is a base class parameter */
-    status = ADDriver::drvUserCreate(pasynUser, drvInfo, pptypeName, psize);
-    return(status);  
+    status = this->drvUserCreateParam(pasynUser, drvInfo, pptypeName, psize, 
+                                      PilatusDetParamString, NUM_PILATUS_DET_PARAMS);
+
+    /* If not, then call the base class method, see if it is known there */
+    if (status) status = ADDriver::drvUserCreate(pasynUser, drvInfo, pptypeName, psize);
+    return(status);
 }
     
+/** Report status of the driver.
+  * Prints details about the driver if details>0.
+  * It then calls the ADDriver::report() method.
+  * \param[in] fp File pointed passed by caller where the output is written to.
+  * \param[in] details If >0 then driver details are printed.
+  */
 void pilatusDetector::report(FILE *fp, int details)
 {
 
@@ -972,6 +989,22 @@ extern "C" int pilatusDetectorConfig(const char *portName, const char *camserver
     return(asynSuccess);
 }
 
+/** Constructor for Pilatus driver; most parameters are simply passed to ADDriver::ADDriver.
+  * After calling the base class constructor this method creates a thread to collect the detector data, 
+  * and sets reasonable default values for all of the parameters defined in this class and ADStdDriverParams.h.
+  * \param[in] portName The name of the asyn port driver to be created.
+  * \param[in] camserverPort The name of the asyn port previously created with drvAsynIPPortConfigure to
+  *            communicate with camserver.
+  * \param[in] maxSizeX The size of the Pilatus detector in the X direction.
+  * \param[in] maxSizeY The size of the Pilatus detector in the Y direction.
+  * \param[in] portName The name of the asyn port driver to be created.
+  * \param[in] maxBuffers The maximum number of NDArray buffers that the NDArrayPool for this driver is 
+  *            allowed to allocate. Set this to -1 to allow an unlimited number of buffers.
+  * \param[in] maxMemory The maximum amount of memory that the NDArrayPool for this driver is 
+  *            allowed to allocate. Set this to -1 to allow an unlimited amount of memory.
+  * \param[in] priority The thread priority for the asyn port driver thread if ASYN_CANBLOCK is set in asynFlags.
+  * \param[in] stackSize The stack size for the asyn port driver thread if ASYN_CANBLOCK is set in asynFlags.
+  */
 pilatusDetector::pilatusDetector(const char *portName, const char *camserverPort,
                                 int maxSizeX, int maxSizeY,
                                 int maxBuffers, size_t maxMemory,
