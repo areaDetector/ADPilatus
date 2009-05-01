@@ -117,7 +117,7 @@ public:
 /** Driver-specific parameters for the Pilatus driver */
 typedef enum {
     PilatusDelayTime
-        = ADFirstDriverParam,
+        = ADLastStdParam,
     PilatusThreshold,
     PilatusArmed,
     PilatusTiffTimeout,
@@ -154,8 +154,8 @@ void pilatusDetector::readBadPixelFile(const char *badPixelFile)
     const char *functionName = "readBadPixelFile";
     int numBadPixels=0;
 
-    getIntegerParam(ADImageSizeX, &nx);
-    getIntegerParam(ADImageSizeY, &ny);
+    getIntegerParam(NDArraySizeX, &nx);
+    getIntegerParam(NDArraySizeY, &ny);
     setIntegerParam(PilatusNumBadPixels, numBadPixels);
     if (strlen(badPixelFile) == 0) return;
     file = fopen(badPixelFile, "r");
@@ -656,7 +656,7 @@ void pilatusDetector::pilatusTask()
                     "ExtMTrigger %s", fullFileName);
                 break;
             case TMAlignment:
-                getStringParam(ADFilePath, sizeof(filePath), filePath);
+                getStringParam(NDFilePath, sizeof(filePath), filePath);
                 epicsSnprintf(fullFileName, sizeof(fullFileName), "%salignment.tif", 
                               filePath);
                 epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), 
@@ -674,7 +674,7 @@ void pilatusDetector::pilatusTask()
         makeMultipleFileFormat(fullFileName);
         multipleFileNextImage = 0;
         /* Call the callbacks to update any changes */
-        setStringParam(ADFullFileName, fullFileName);
+        setStringParam(NDFullFileName, fullFileName);
         callParamCallbacks();
 
         while (acquire) {
@@ -699,10 +699,10 @@ void pilatusDetector::pilatusTask()
                 epicsSnprintf(fullFileName, sizeof(fullFileName), multipleFileFormat, 
                               multipleFileNumber);
             }
-            getIntegerParam(ADArrayCallbacks, &arrayCallbacks);
-            getIntegerParam(ADImageCounter, &imageCounter);
+            getIntegerParam(NDArrayCallbacks, &arrayCallbacks);
+            getIntegerParam(NDArrayCounter, &imageCounter);
             imageCounter++;
-            setIntegerParam(ADImageCounter, imageCounter);
+            setIntegerParam(NDArrayCounter, imageCounter);
             /* Call the callbacks to update any changes */
             callParamCallbacks();
 
@@ -911,7 +911,7 @@ asynStatus pilatusDetector::writeOctet(asynUser *pasynUser, const char *value,
         case PilatusFlatFieldFile:
             this->readFlatFieldFile(value);
             break;
-        case ADFilePath:
+        case NDFilePath:
             epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "imgpath %s", value);
             writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
         default:
@@ -973,7 +973,7 @@ void pilatusDetector::report(FILE *fp, int details)
         int nx, ny, dataType;
         getIntegerParam(ADSizeX, &nx);
         getIntegerParam(ADSizeY, &ny);
-        getIntegerParam(ADDataType, &dataType);
+        getIntegerParam(NDDataType, &dataType);
         fprintf(fp, "  NX, NY:            %d  %d\n", nx, ny);
         fprintf(fp, "  Data type:         %d\n", dataType);
     }
@@ -1054,10 +1054,10 @@ pilatusDetector::pilatusDetector(const char *portName, const char *camserverPort
     status |= setIntegerParam(ADSizeX, maxSizeX);
     status |= setIntegerParam(ADSizeX, maxSizeX);
     status |= setIntegerParam(ADSizeY, maxSizeY);
-    status |= setIntegerParam(ADImageSizeX, maxSizeX);
-    status |= setIntegerParam(ADImageSizeY, maxSizeY);
-    status |= setIntegerParam(ADImageSize, 0);
-    status |= setIntegerParam(ADDataType,  NDUInt32);
+    status |= setIntegerParam(NDArraySizeX, maxSizeX);
+    status |= setIntegerParam(NDArraySizeY, maxSizeY);
+    status |= setIntegerParam(NDArraySize, 0);
+    status |= setIntegerParam(NDDataType,  NDUInt32);
     status |= setIntegerParam(ADImageMode, ADImageContinuous);
     status |= setIntegerParam(ADTriggerMode, TMInternal);
     status |= setDoubleParam (ADAcquireTime, .001);
