@@ -30,14 +30,12 @@
 #include <epicsStdio.h>
 #include <epicsMutex.h>
 #include <cantProceed.h>
+#include <iocsh.h>
+#include <epicsExport.h>
 
 #include <asynOctetSyncIO.h>
 
-#include "ADStdDriverParams.h"
-#include "NDArray.h"
 #include "ADDriver.h"
-
-#include "drvPilatusDetector.h"
 
 /** Messages to/from camserver */
 #define MAX_MESSAGE_SIZE 256 
@@ -1091,3 +1089,36 @@ pilatusDetector::pilatusDetector(const char *portName, const char *camserverPort
         return;
     }
 }
+
+/* Code for iocsh registration */
+static const iocshArg pilatusDetectorConfigArg0 = {"Port name", iocshArgString};
+static const iocshArg pilatusDetectorConfigArg1 = {"camserver port name", iocshArgString};
+static const iocshArg pilatusDetectorConfigArg2 = {"maxSizeX", iocshArgInt};
+static const iocshArg pilatusDetectorConfigArg3 = {"maxSizeY", iocshArgInt};
+static const iocshArg pilatusDetectorConfigArg4 = {"maxBuffers", iocshArgInt};
+static const iocshArg pilatusDetectorConfigArg5 = {"maxMemory", iocshArgInt};
+static const iocshArg pilatusDetectorConfigArg6 = {"priority", iocshArgInt};
+static const iocshArg pilatusDetectorConfigArg7 = {"stackSize", iocshArgInt};
+static const iocshArg * const pilatusDetectorConfigArgs[] =  {&pilatusDetectorConfigArg0,
+                                                              &pilatusDetectorConfigArg1,
+                                                              &pilatusDetectorConfigArg2,
+                                                              &pilatusDetectorConfigArg3,
+                                                              &pilatusDetectorConfigArg4,
+                                                              &pilatusDetectorConfigArg5,
+                                                              &pilatusDetectorConfigArg6,
+                                                              &pilatusDetectorConfigArg7};
+static const iocshFuncDef configPilatusDetector = {"pilatusDetectorConfig", 8, pilatusDetectorConfigArgs};
+static void configPilatusDetectorCallFunc(const iocshArgBuf *args)
+{
+    pilatusDetectorConfig(args[0].sval, args[1].sval, args[2].ival,  args[3].ival,  
+                          args[4].ival, args[5].ival, args[6].ival,  args[7].ival);
+}
+
+
+static void pilatusDetectorRegister(void)
+{
+
+    iocshRegister(&configPilatusDetector, configPilatusDetectorCallFunc);
+}
+
+epicsExportRegistrar(pilatusDetectorRegister);

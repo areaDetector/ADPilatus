@@ -15,7 +15,6 @@ PROD_IOC_Linux += pilatusDetectorApp
 PROD_IOC_solaris += pilatusDetectorApp
 
 LIB_SRCS += pilatusDetector.cpp
-LIB_SRCS += drvPilatusDetectorEpics.c
 LIB_LIBS += NDPlugin ADBase netCDF
 LIB_LIBS += calc busy sscan autosave mca
 LIB_LIBS += asyn
