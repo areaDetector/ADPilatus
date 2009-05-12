@@ -1121,4 +1121,7 @@ static void pilatusDetectorRegister(void)
     iocshRegister(&configPilatusDetector, configPilatusDetectorCallFunc);
 }
 
+extern "C" {
 epicsExportRegistrar(pilatusDetectorRegister);
+}
+
