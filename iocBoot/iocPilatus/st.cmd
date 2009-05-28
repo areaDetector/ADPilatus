@@ -19,7 +19,7 @@ dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/pilatus.template","P=13PIL1:,R=cam1:,PO
 # Create a standard arrays plugin
 NDStdArraysConfigure("PilImage", 5, 0, "Pil", 0, -1)
 dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDPluginBase.template","P=13PIL1:,R=image1:,PORT=PilImage,ADDR=0,TIMEOUT=1,NDARRAY_PORT=Pil,NDARRAY_ADDR=0")
-dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDStdArrays.template", "P=13PIL1:,R=image1:,PORT=PilImage,ADDR=0,TIMEOUT=1,SIZE=32,FTVL=LONG,NELEMENTS=94965")
+dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDStdArrays.template", "P=13PIL1:,R=image1:,PORT=PilImage,ADDR=0,TIMEOUT=1,TYPE=Int32,FTVL=LONG,NELEMENTS=94965")
 
 # Create an ROI plugin
 NDROIConfigure("PilROI", 5, 0, "Pil", 0, 10, 20, -1)
