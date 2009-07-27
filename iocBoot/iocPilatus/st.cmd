@@ -21,6 +21,25 @@ NDStdArraysConfigure("PilImage", 5, 0, "Pil", 0, -1)
 dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDPluginBase.template","P=13PIL1:,R=image1:,PORT=PilImage,ADDR=0,TIMEOUT=1,NDARRAY_PORT=Pil,NDARRAY_ADDR=0")
 dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDStdArrays.template", "P=13PIL1:,R=image1:,PORT=PilImage,ADDR=0,TIMEOUT=1,TYPE=Int32,FTVL=LONG,NELEMENTS=94965")
 
+# Create a netCDF file saving plugin
+NDFileNetCDFConfigure("PilFileNetCDF", 450, 0, "Pil", 0)
+dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDPluginBase.template","P=13PIL1:,R=netCDF1:,PORT=PilFileNetCDF,ADDR=0,TIMEOUT=1,NDARRAY_PORT=Pil,NDARRAY_ADDR=0")
+dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDFile.template",      "P=13PIL1:,R=netCDF1:,PORT=PilFileNetCDF,ADDR=0,TIMEOUT=1")
+dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDFileNetCDF.template","P=13PIL1:,R=netCDF1:,PORT=PilFileNetCDF,ADDR=0,TIMEOUT=1")
+
+# Create a TIFF file saving plugin
+NDFileTIFFConfigure("PilFileTIFF", 20, 0, "Pil", 0)
+dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDPluginBase.template","P=13PIL1:,R=TIFF1:,PORT=PilFileTIFF,ADDR=0,TIMEOUT=1,NDARRAY_PORT=Pil,NDARRAY_ADDR=0")
+dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDFile.template",      "P=13PIL1:,R=TIFF1:,PORT=PilFileTIFF,ADDR=0,TIMEOUT=1")
+dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDFileTIFF.template",  "P=13PIL1:,R=TIFF1:,PORT=PilFileTIFF,ADDR=0,TIMEOUT=1")
+
+# Create a JPEG file saving plugin
+NDFileJPEGConfigure("PilFileJPEG", 20, 0, "Pil", 0)
+dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDPluginBase.template","P=13PIL1:,R=JPEG1:,PORT=PilFileJPEG,ADDR=0,TIMEOUT=1,NDARRAY_PORT=Pil,NDARRAY_ADDR=0")
+dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDFile.template",      "P=13PIL1:,R=JPEG1:,PORT=PilFileJPEG,ADDR=0,TIMEOUT=1")
+dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDFileJPEG.template",  "P=13PIL1:,R=JPEG1:,PORT=PilFileJPEG,ADDR=0,TIMEOUT=1")
+
+
 # Create an ROI plugin
 NDROIConfigure("PilROI", 5, 0, "Pil", 0, 10, 20, -1)
 dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDPluginBase.template","P=13PIL1:,R=ROI1:,  PORT=PilROI,ADDR=0,TIMEOUT=1,NDARRAY_PORT=Pil,NDARRAY_ADDR=0")
