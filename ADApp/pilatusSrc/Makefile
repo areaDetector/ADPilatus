@@ -37,9 +37,16 @@ pilatusDetectorApp_LIBS += NDPlugin ADBase netCDF
 pilatusDetectorApp_LIBS += calc busy sscan autosave mca
 pilatusDetectorApp_LIBS += asyn
 pilatusDetectorApp_LIBS += $(EPICS_BASE_IOC_LIBS)
-pilatusDetectorApp_SYS_LIBS += tiff jpeg z
 
-pilatusDetectorApp_SYS_LIBS_cygwin32 += rpc
+# To use versions of these libraries supplied with areaDetector use this line
+pilatusDetectorApp_LIBS_Linux        += NeXus mfhdf df hdf5 mxml
+# To use system versions of these libraries use this line
+#pilatusDetectorApp_SYS_LIBS_Linux    += NeXus mfhdf df hdf5 mxml
+
+# To use versions of these libraries supplied with areaDetector use this line
+pilatusDetectorApp_LIBS_Linux        += tiff jpeg z
+# To use system versions of these libraries use this line
+#pilatusDetectorApp_SYS_LIBS_Linux    += tiff jpeg z
 
 #=============================
 
