@@ -1001,7 +1001,7 @@ extern "C" int pilatusDetectorConfig(const char *portName, const char *camserver
 
 /** Constructor for Pilatus driver; most parameters are simply passed to ADDriver::ADDriver.
   * After calling the base class constructor this method creates a thread to collect the detector data, 
-  * and sets reasonable default values for all of the parameters defined in this class and ADStdDriverParams.h.
+  * and sets reasonable default values for the parameters defined in this class, asynNDArrayDriver, and ADDriver.
   * \param[in] portName The name of the asyn port driver to be created.
   * \param[in] camserverPort The name of the asyn port previously created with drvAsynIPPortConfigure to
   *            communicate with camserver.
