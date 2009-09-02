@@ -19,7 +19,6 @@ LIB_LIBS += NDPlugin ADBase netCDF
 LIB_LIBS += calc busy sscan autosave mca
 LIB_LIBS += asyn
 LIB_LIBS += $(EPICS_BASE_IOC_LIBS)
-LIB_SYS_LIBS += tiff jpeg z
 
 #==================================
 
