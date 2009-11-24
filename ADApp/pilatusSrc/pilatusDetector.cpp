@@ -67,6 +67,17 @@ static const char *gainStrings[] = {"lowG", "midG", "highG", "uhighG"};
 
 static const char *driverName = "pilatusDetector";
 
+#define PilatusDelayTimeString      "DELAY_TIME"
+#define PilatusThresholdString      "THRESHOLD"
+#define PilatusArmedString          "ARMED"
+#define PilatusBadPixelFileString   "BAD_PIXEL_FILE"
+#define PilatusNumBadPixelsString   "NUM_BAD_PIXELS"
+#define PilatusFlatFieldFileString  "FLAT_FIELD_FILE"
+#define PilatusMinFlatFieldString   "MIN_FLAT_FIELD"
+#define PilatusFlatFieldValidString "FLAT_FIELD_VALID"
+#define PilatusTiffTimeoutString    "TIFF_TIMEOUT"
+
+
 /** Driver for Dectris Pilatus pixel array detectors using their camserver server over TCP/IP socket */
 class pilatusDetector : public ADDriver {
 public:
@@ -80,11 +91,22 @@ public:
     virtual asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
     virtual asynStatus writeOctet(asynUser *pasynUser, const char *value, 
                                     size_t nChars, size_t *nActual);
-    virtual asynStatus drvUserCreate(asynUser *pasynUser, const char *drvInfo, 
-                                     const char **pptypeName, size_t *psize);
     void report(FILE *fp, int details);
     void pilatusTask(); /* This should be private but is called from C so must be public */
  
+ protected:
+    int PilatusDelayTime;
+    #define FIRST_PILATUS_PARAM PilatusDelayTime
+    int PilatusThreshold;
+    int PilatusArmed;
+    int PilatusTiffTimeout;
+    int PilatusBadPixelFile;
+    int PilatusNumBadPixels;
+    int PilatusFlatFieldFile;
+    int PilatusMinFlatField;
+    int PilatusFlatFieldValid;
+    #define LAST_PILATUS_PARAM PilatusFlatFieldValid
+
  private:                                       
     /* These are the methods that are new to this class */
     void abortAcquisition();
@@ -112,35 +134,7 @@ public:
     double averageFlatField;
 };
 
-/** Driver-specific parameters for the Pilatus driver */
-typedef enum {
-    PilatusDelayTime
-        = ADLastStdParam,
-    PilatusThreshold,
-    PilatusArmed,
-    PilatusTiffTimeout,
-    PilatusBadPixelFile,
-    PilatusNumBadPixels,
-    PilatusFlatFieldFile,
-    PilatusMinFlatField,
-    PilatusFlatFieldValid,
-    ADLastDriverParam
-} PilatusDetParam_t;
-
-static asynParamString_t PilatusDetParamString[] = {
-    {PilatusDelayTime,      "DELAY_TIME"},
-    {PilatusThreshold,      "THRESHOLD"},
-    {PilatusArmed,          "ARMED"},
-    {PilatusBadPixelFile,   "BAD_PIXEL_FILE"},
-    {PilatusNumBadPixels,   "NUM_BAD_PIXELS"},
-    {PilatusFlatFieldFile,  "FLAT_FIELD_FILE"},
-    {PilatusMinFlatField,   "MIN_FLAT_FIELD"},
-    {PilatusFlatFieldValid, "FLAT_FIELD_VALID"},
-    {PilatusTiffTimeout,    "TIFF_TIMEOUT"}
-};
-
-#define NUM_PILATUS_DET_PARAMS (sizeof(PilatusDetParamString)/sizeof(PilatusDetParamString[0]))
-
+#define NUM_PILATUS_PARAMS (&LAST_PILATUS_PARAM - &FIRST_PILATUS_PARAM + 1)
 
 void pilatusDetector::readBadPixelFile(const char *badPixelFile)
 {
@@ -806,8 +800,7 @@ asynStatus pilatusDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
 
     status = setIntegerParam(function, value);
 
-    switch (function) {
-    case ADAcquire:
+    if (function == ADAcquire) {
         getIntegerParam(ADStatus, &adstatus);
         if (value && (adstatus == ADStatusIdle)) {
             /* Send an event to wake up the Pilatus task.  */
@@ -821,16 +814,13 @@ asynStatus pilatusDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
             epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "K");
             writeCamserver(CAMSERVER_DEFAULT_TIMEOUT);
         }
-        break;
-    case ADTriggerMode:
-    case ADNumImages:
-    case ADNumExposures:
+    } else if ((function == ADTriggerMode) ||
+               (function == ADNumImages) ||
+               (function == ADNumExposures)) {
         setAcquireParams();
-        break;
-    default: 
+    } else { 
         /* If this parameter belongs to a base class call its method */
-        if (function < ADLastStdParam) status = ADDriver::writeInt32(pasynUser, value);
-        break;
+        if (function < FIRST_PILATUS_PARAM) status = ADDriver::writeInt32(pasynUser, value);
     }
             
     /* Do callbacks so higher layers see any changes */
@@ -864,20 +854,16 @@ asynStatus pilatusDetector::writeFloat64(asynUser *pasynUser, epicsFloat64 value
     status = setDoubleParam(function, value);
 
     /* Changing any of the following parameters requires recomputing the base image */
-    switch (function) {
-        case ADGain:
-        case PilatusThreshold:
-            setThreshold();
-            break;
-        case ADAcquireTime:
-        case ADAcquirePeriod:
-        case PilatusDelayTime:
-            setAcquireParams();
-            break;
-        default:
-            /* If this parameter belongs to a base class call its method */
-            if (function < ADLastStdParam) status = ADDriver::writeFloat64(pasynUser, value);
-            break;
+    if ((function == ADGain) ||
+        (function == PilatusThreshold)) {
+        setThreshold();
+    } else if ((function == ADAcquireTime) ||
+               (function == ADAcquirePeriod) ||
+               (function == PilatusDelayTime)) {
+        setAcquireParams();
+    } else {
+        /* If this parameter belongs to a base class call its method */
+        if (function < FIRST_PILATUS_PARAM) status = ADDriver::writeFloat64(pasynUser, value);
     }
 
     /* Do callbacks so higher layers see any changes */
@@ -910,20 +896,16 @@ asynStatus pilatusDetector::writeOctet(asynUser *pasynUser, const char *value,
     /* Set the parameter in the parameter library. */
     status = (asynStatus)setStringParam(function, (char *)value);
 
-    switch(function) {
-        case PilatusBadPixelFile:
-            this->readBadPixelFile(value);
-            break;
-        case PilatusFlatFieldFile:
-            this->readFlatFieldFile(value);
-            break;
-        case NDFilePath:
-            epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "imgpath %s", value);
-            writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
-        default:
-            /* If this parameter belongs to a base class call its method */
-            if (function < ADLastStdParam) status = ADDriver::writeOctet(pasynUser, value, nChars, nActual);
-            break;
+    if (function == PilatusBadPixelFile) {
+        this->readBadPixelFile(value);
+    } else if (function == PilatusFlatFieldFile) {
+        this->readFlatFieldFile(value);
+    } else if (function == NDFilePath) {
+        epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "imgpath %s", value);
+        writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
+    } else {
+        /* If this parameter belongs to a base class call its method */
+        if (function < FIRST_PILATUS_PARAM) status = ADDriver::writeOctet(pasynUser, value, nChars, nActual);
     }
     
      /* Do callbacks so higher layers see any changes */
@@ -943,30 +925,6 @@ asynStatus pilatusDetector::writeOctet(asynUser *pasynUser, const char *value,
 
 
 
-/** Sets pasynUser->reason to one of the enum values for the parameters defined for
-  * this class if the drvInfo field matches one the strings defined for it.
-  * If the parameter is not recognized by this class then calls ADDriver::drvUserCreate.
-  * Uses asynPortDriver::drvUserCreateParam.
-  * \param[in] pasynUser pasynUser structure that driver modifies
-  * \param[in] drvInfo String containing information about what driver function is being referenced
-  * \param[out] pptypeName Location in which driver puts a copy of drvInfo.
-  * \param[out] psize Location where driver puts size of param 
-  * \return Returns asynSuccess if a matching string was found, asynError if not found. */
-asynStatus pilatusDetector::drvUserCreate(asynUser *pasynUser,
-                                       const char *drvInfo, 
-                                       const char **pptypeName, size_t *psize)
-{
-    asynStatus status;
-    //const char *functionName = "drvUserCreate";
-    
-    status = this->drvUserCreateParam(pasynUser, drvInfo, pptypeName, psize, 
-                                      PilatusDetParamString, NUM_PILATUS_DET_PARAMS);
-
-    /* If not, then call the base class method, see if it is known there */
-    if (status) status = ADDriver::drvUserCreate(pasynUser, drvInfo, pptypeName, psize);
-    return(status);
-}
-    
 /** Report status of the driver.
   * Prints details about the driver if details>0.
   * It then calls the ADDriver::report() method.
@@ -1020,7 +978,7 @@ pilatusDetector::pilatusDetector(const char *portName, const char *camserverPort
                                 int maxBuffers, size_t maxMemory,
                                 int priority, int stackSize)
 
-    : ADDriver(portName, 1, ADLastDriverParam, maxBuffers, maxMemory,
+    : ADDriver(portName, 1, NUM_PILATUS_PARAMS, maxBuffers, maxMemory,
                0, 0,             /* No interfaces beyond those set in ADDriver.cpp */
                ASYN_CANBLOCK, 1, /* ASYN_CANBLOCK=1, ASYN_MULTIDEVICE=0, autoConnect=1 */
                priority, stackSize),
@@ -1053,6 +1011,16 @@ pilatusDetector::pilatusDetector(const char *portName, const char *camserverPort
     
     /* Connect to camserver */
     status = pasynOctetSyncIO->connect(camserverPort, 0, &this->pasynUserCamserver, NULL);
+
+    addParam(PilatusDelayTimeString,      &PilatusDelayTime);
+    addParam(PilatusThresholdString,      &PilatusThreshold);
+    addParam(PilatusArmedString,          &PilatusArmed);
+    addParam(PilatusTiffTimeoutString,    &PilatusTiffTimeout);
+    addParam(PilatusBadPixelFileString,   &PilatusBadPixelFile);
+    addParam(PilatusNumBadPixelsString,   &PilatusNumBadPixels);
+    addParam(PilatusFlatFieldFileString,  &PilatusFlatFieldFile);
+    addParam(PilatusMinFlatFieldString,   &PilatusMinFlatField);
+    addParam(PilatusFlatFieldValidString, &PilatusFlatFieldValid);
 
     /* Set some default values for parameters */
     status =  setStringParam (ADManufacturer, "Dectris");
