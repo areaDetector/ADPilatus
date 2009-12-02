@@ -48,10 +48,10 @@ dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDROIN.template",      "P=13PIL1:,R=ROI
 dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDROIN.template",      "P=13PIL1:,R=ROI1:1:,PORT=PilROI,ADDR=1,TIMEOUT=1,HIST_SIZE=256")
 dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDROIN.template",      "P=13PIL1:,R=ROI1:2:,PORT=PilROI,ADDR=2,TIMEOUT=1,HIST_SIZE=256")
 dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDROIN.template",      "P=13PIL1:,R=ROI1:3:,PORT=PilROI,ADDR=3,TIMEOUT=1,HIST_SIZE=256")
-dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDROIN.template",      "P=13PIL1:,R=ROI1:4:,PORT=PilROI,ADDR=3,TIMEOUT=1,HIST_SIZE=256")
-dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDROIN.template",      "P=13PIL1:,R=ROI1:5:,PORT=PilROI,ADDR=3,TIMEOUT=1,HIST_SIZE=256")
-dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDROIN.template",      "P=13PIL1:,R=ROI1:6:,PORT=PilROI,ADDR=3,TIMEOUT=1,HIST_SIZE=256")
-dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDROIN.template",      "P=13PIL1:,R=ROI1:7:,PORT=PilROI,ADDR=3,TIMEOUT=1,HIST_SIZE=256")
+dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDROIN.template",      "P=13PIL1:,R=ROI1:4:,PORT=PilROI,ADDR=4,TIMEOUT=1,HIST_SIZE=256")
+dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDROIN.template",      "P=13PIL1:,R=ROI1:5:,PORT=PilROI,ADDR=5,TIMEOUT=1,HIST_SIZE=256")
+dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDROIN.template",      "P=13PIL1:,R=ROI1:6:,PORT=PilROI,ADDR=6,TIMEOUT=1,HIST_SIZE=256")
+dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDROIN.template",      "P=13PIL1:,R=ROI1:7:,PORT=PilROI,ADDR=7,TIMEOUT=1,HIST_SIZE=256")
 
 # Create "fastSweep" drivers for the MCA record to do on-the-fly scanning of ROI data
 initFastSweep("PilSweepTotal", "PilROI", 8, 2048, "TOTAL_ARRAY", "CALLBACK_PERIOD")
