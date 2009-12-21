@@ -1012,15 +1012,15 @@ pilatusDetector::pilatusDetector(const char *portName, const char *camserverPort
     /* Connect to camserver */
     status = pasynOctetSyncIO->connect(camserverPort, 0, &this->pasynUserCamserver, NULL);
 
-    addParam(PilatusDelayTimeString,      &PilatusDelayTime);
-    addParam(PilatusThresholdString,      &PilatusThreshold);
-    addParam(PilatusArmedString,          &PilatusArmed);
-    addParam(PilatusTiffTimeoutString,    &PilatusTiffTimeout);
-    addParam(PilatusBadPixelFileString,   &PilatusBadPixelFile);
-    addParam(PilatusNumBadPixelsString,   &PilatusNumBadPixels);
-    addParam(PilatusFlatFieldFileString,  &PilatusFlatFieldFile);
-    addParam(PilatusMinFlatFieldString,   &PilatusMinFlatField);
-    addParam(PilatusFlatFieldValidString, &PilatusFlatFieldValid);
+    createParam(PilatusDelayTimeString,      asynParamFloat64, &PilatusDelayTime);
+    createParam(PilatusThresholdString,      asynParamFloat64, &PilatusThreshold);
+    createParam(PilatusArmedString,          asynParamInt32,   &PilatusArmed);
+    createParam(PilatusTiffTimeoutString,    asynParamFloat64, &PilatusTiffTimeout);
+    createParam(PilatusBadPixelFileString,   asynParamOctet,   &PilatusBadPixelFile);
+    createParam(PilatusNumBadPixelsString,   asynParamInt32,   &PilatusNumBadPixels);
+    createParam(PilatusFlatFieldFileString,  asynParamOctet,   &PilatusFlatFieldFile);
+    createParam(PilatusMinFlatFieldString,   asynParamInt32,   &PilatusMinFlatField);
+    createParam(PilatusFlatFieldValidString, asynParamInt32,   &PilatusFlatFieldValid);
 
     /* Set some default values for parameters */
     status =  setStringParam (ADManufacturer, "Dectris");
