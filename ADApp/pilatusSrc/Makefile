@@ -51,7 +51,12 @@ pilatusDetectorApp_LIBS_Linux        += tiff jpeg z
 # To use system versions of these libraries use this line
 #pilatusDetectorApp_SYS_LIBS_Linux    += tiff jpeg z
 
-pilatusDetector_SYS_LIBS_solaris   += tiff jpeg z
+pilatusDetector_SYS_LIBS_solaris   += tiff
+pilatusDetectorApp_SYS_LIBS_solaris   += tiff
+
+# use libs supplied with areaDetector (in tiffSupport)
+pilatusDetector_LIBS_solaris    += NeXusCPP NeXus hdf5_cpp hdf5 mxml jpeg sz z
+pilatusDetectorApp_LIBS_solaris += NeXusCPP NeXus hdf5_cpp hdf5 mxml jpeg sz z
 
 #=============================
 
