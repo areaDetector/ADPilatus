@@ -7,6 +7,8 @@ pilatusDetectorApp_registerRecordDeviceDriver(pdbbase)
 epicsEnvSet("PREFIX", "13PIL1:")
 epicsEnvSet("PORT",   "PIL")
 epicsEnvSet("QSIZE",  "20")
+epicsEnvSet("XSIZE",  "487")
+epicsEnvSet("YSIZE",  "195")
 
 ###
 # Create the asyn port to talk to the Pilatus on port 41234.
@@ -15,7 +17,7 @@ drvAsynIPPortConfigure("camserver","gse-pilatus2:41234")
 asynOctetSetInputEos("camserver", 0, "\030")
 asynOctetSetOutputEos("camserver", 0, "\n")
 
-pilatusDetectorConfig("$(PORT)", "camserver", 487, 195, 50, 200000000)
+pilatusDetectorConfig("$(PORT)", "camserver", $(XSIZE), $(YSIZE), 50, 200000000)
 dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/ADBase.template", "P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")
 dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/NDFile.template", "P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")
 dbLoadRecords("$(AREA_DETECTOR)/ADApp/Db/pilatus.template","P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1,CAMSERVER_PORT=camserver")
