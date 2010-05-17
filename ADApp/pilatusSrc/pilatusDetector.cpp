@@ -901,6 +901,7 @@ asynStatus pilatusDetector::writeOctet(asynUser *pasynUser, const char *value,
     } else if (function == PilatusFlatFieldFile) {
         this->readFlatFieldFile(value);
     } else if (function == NDFilePath) {
+        this->checkPath();
         epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "imgpath %s", value);
         writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
     } else {
