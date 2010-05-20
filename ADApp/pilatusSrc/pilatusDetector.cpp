@@ -476,7 +476,7 @@ asynStatus pilatusDetector::setThreshold()
     getDoubleParam(PilatusThreshold, &threshold);
     epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "SetThreshold %s %f", 
                     gainStrings[igain], threshold*1000.);
-    writeReadCamserver(3.0);  /* This command can take a few seconds */
+    writeReadCamserver(90.0);  /* This command can take 78 seconds on a 6M */
     return(asynSuccess);
 }
 
