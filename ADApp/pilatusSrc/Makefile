@@ -14,8 +14,10 @@ LIBRARY_IOC_solaris = pilatusDetector
 PROD_IOC_Linux += pilatusDetectorApp
 PROD_IOC_solaris += pilatusDetectorApp
 
+USR_INCLUDES += -I$(TOP)/ADApp/cbfSrc
+
 LIB_SRCS += pilatusDetector.cpp
-LIB_LIBS += NDPlugin ADBase netCDF
+LIB_LIBS += NDPlugin ADBase netCDF cbfad
 LIB_LIBS_Linux += PvAPI ImageLib
 LIB_LIBS_WIN32 += PvAPI ImageLib
 LIB_LIBS += calc busy sscan autosave mca
@@ -34,7 +36,7 @@ pilatusDetectorApp_SRCS_vxWorks += pilatusDetectorApp_registerRecordDeviceDriver
 
 # Add locally compiled object code
 pilatusDetectorApp_LIBS += pilatusDetector
-pilatusDetectorApp_LIBS += NDPlugin ADBase netCDF
+pilatusDetectorApp_LIBS += NDPlugin ADBase netCDF cbfad
 pilatusDetectorApp_LIBS_Linux += PvAPI ImageLib
 pilatusDetectorApp_LIBS_WIN32 += PvAPI ImageLib
 pilatusDetectorApp_LIBS += calc busy sscan autosave mca
