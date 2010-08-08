@@ -942,13 +942,14 @@ void pilatusDetector::pilatusTask()
                               multipleFileNumber);
             }
             getIntegerParam(NDArrayCallbacks, &arrayCallbacks);
-            getIntegerParam(NDArrayCounter, &imageCounter);
-            imageCounter++;
-            setIntegerParam(NDArrayCounter, imageCounter);
-            /* Call the callbacks to update any changes */
-            callParamCallbacks();
 
             if (arrayCallbacks) {
+                getIntegerParam(NDArrayCounter, &imageCounter);
+                imageCounter++;
+                setIntegerParam(NDArrayCounter, imageCounter);
+                /* Call the callbacks to update any changes */
+                callParamCallbacks();
+
                 /* Get an image buffer from the pool */
                 getIntegerParam(ADMaxSizeX, &dims[0]);
                 getIntegerParam(ADMaxSizeY, &dims[1]);
@@ -1024,7 +1025,11 @@ void pilatusDetector::pilatusTask()
                 timeout = numImages * acquireTime + readImageFileTimeout;
             setStringParam(ADStatusMessage, "Waiting for 7OK response");
             callParamCallbacks();
+            /* We release the mutex because we may wait a long time and need to allow abort
+             * operations to get through */
+            this->unlock();
             readCamserver(timeout);
+            this->lock();
         }
         setShutter(0);
         setIntegerParam(ADAcquire, 0);
