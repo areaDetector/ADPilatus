@@ -401,10 +401,11 @@ int pilatusDetector::stringEndsWith(const char *aString, const char *aSubstring,
     i = strlen(aString) - 1;
     j = strlen(aSubstring) - 1;
     while (i >= 0 && j >= 0) {
-        if (shouldIgnoreCase)
+        if (shouldIgnoreCase) {
             if (tolower(aString[i]) != tolower(aSubstring[j])) return 0;
-        else
+        } else {
             if (aString[i] != aSubstring[j]) return 0;
+        }
         i--; j--;
     }
     return j < 0;
