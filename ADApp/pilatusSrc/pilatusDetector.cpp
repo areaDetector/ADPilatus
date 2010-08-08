@@ -20,6 +20,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <cbf_ad.h>
 #include <tiffio.h>
 
 #include <epicsTime.h>
@@ -44,7 +45,7 @@
 /** Time to poll when reading from camserver */
 #define ASYN_POLL_TIME .01 
 #define CAMSERVER_DEFAULT_TIMEOUT 1.0 
-/** Time between checking to see if TIFF file is complete */
+/** Time between checking to see if image file is complete */
 #define FILE_READ_DELAY .01
 
 /** Trigger modes */
@@ -75,7 +76,26 @@ static const char *driverName = "pilatusDetector";
 #define PilatusFlatFieldFileString  "FLAT_FIELD_FILE"
 #define PilatusMinFlatFieldString   "MIN_FLAT_FIELD"
 #define PilatusFlatFieldValidString "FLAT_FIELD_VALID"
-#define PilatusTiffTimeoutString    "TIFF_TIMEOUT"
+#define PilatusImageFileTmotString  "IMAGE_FILE_TMOT"
+#define PilatusWavelengthString     "WAVELENGTH"
+#define PilatusEnergyLowString      "ENERGY_LOW"
+#define PilatusEnergyHighString     "ENERGY_HIGH"
+#define PilatusDetDistString        "DET_DIST"
+#define PilatusDetVOffsetString     "DET_VOFFSET"
+#define PilatusBeamXString          "BEAM_X"
+#define PilatusBeamYString          "BEAM_Y"
+#define PilatusFluxString           "FLUX"
+#define PilatusFilterTransmString   "FILTER_TRANSM"
+#define PilatusStartAngleString     "START_ANGLE"
+#define PilatusAngleIncrString      "ANGLE_INCR"
+#define PilatusDet2thetaString      "DET_2THETA"
+#define PilatusPolarizationString   "POLARIZATION"
+#define PilatusAlphaString          "ALPHA"
+#define PilatusKappaString          "KAPPA"
+#define PilatusPhiString            "PHI"
+#define PilatusChiString            "CHI"
+#define PilatusOscillAxisString     "OSCILL_AXIS"
+#define PilatusNumOscillString      "NUM_OSCILL"
 
 
 /** Driver for Dectris Pilatus pixel array detectors using their camserver server over TCP/IP socket */
@@ -99,18 +119,42 @@ public:
     #define FIRST_PILATUS_PARAM PilatusDelayTime
     int PilatusThreshold;
     int PilatusArmed;
-    int PilatusTiffTimeout;
+    int PilatusImageFileTmot;
     int PilatusBadPixelFile;
     int PilatusNumBadPixels;
     int PilatusFlatFieldFile;
     int PilatusMinFlatField;
     int PilatusFlatFieldValid;
-    #define LAST_PILATUS_PARAM PilatusFlatFieldValid
+    int PilatusWavelength;
+    int PilatusEnergyLow;
+    int PilatusEnergyHigh;
+    int PilatusDetDist;
+    int PilatusDetVOffset;
+    int PilatusBeamX;
+    int PilatusBeamY;
+    int PilatusFlux;
+    int PilatusFilterTransm;
+    int PilatusStartAngle;
+    int PilatusAngleIncr;
+    int PilatusDet2theta;
+    int PilatusPolarization;
+    int PilatusAlpha;
+    int PilatusKappa;
+    int PilatusPhi;
+    int PilatusChi;
+    int PilatusOscillAxis;
+    int PilatusNumOscill;
+    #define LAST_PILATUS_PARAM PilatusNumOscill
 
  private:                                       
     /* These are the methods that are new to this class */
     void abortAcquisition();
     void makeMultipleFileFormat(const char *baseFileName);
+    asynStatus waitForFileToExist(const char *fileName, epicsTimeStamp *pStartTime, double timeout, NDArray *pImage);
+    void correctBadPixels(NDArray *pImage);
+    int stringEndsWith(const char *aString, const char *aSubstring, int shouldIgnoreCase);
+    asynStatus readImageFile(const char *fileName, epicsTimeStamp *pStartTime, double timeout, NDArray *pImage);
+    asynStatus readCbf(const char *fileName, epicsTimeStamp *pStartTime, double timeout, NDArray *pImage);
     asynStatus readTiff(const char *fileName, epicsTimeStamp *pStartTime, double timeout, NDArray *pImage);
     asynStatus writeCamserver(double timeout);
     asynStatus readCamserver(double timeout);
@@ -189,7 +233,7 @@ void pilatusDetector::readFlatFieldFile(const char *flatFieldFile)
     this->pFlatField->getInfo(&arrayInfo);
     getIntegerParam(PilatusMinFlatField, &minFlatField);
     if (strlen(flatFieldFile) == 0) return;
-    status = readTiff(flatFieldFile, NULL, 0., this->pFlatField);
+    status = readImageFile(flatFieldFile, NULL, 0., this->pFlatField);
     if (status) {
         asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
             "%s::%s, error reading flat field file %s\n",
@@ -275,39 +319,24 @@ void pilatusDetector::makeMultipleFileFormat(const char *baseFileName)
                   mfTempFormat, fmt, mfExtension);
 }
 
-
-/** This function reads TIFF files using libTiff.  It is not intended to be general,
- * it is intended to read the TIFF files that camserver creates.  It checks to make sure
- * that the creation time of the file is after a start time passed to it, to force it to
- * wait for a new file to be created.
+/** This function waits for the specified file to exist.  It checks to make sure that
+ * the creation time of the file is after a start time passed to it, to force it to wait
+ * for a new file to be created.
  */
- 
-asynStatus pilatusDetector::readTiff(const char *fileName, epicsTimeStamp *pStartTime, double timeout, NDArray *pImage)
+asynStatus pilatusDetector::waitForFileToExist(const char *fileName, epicsTimeStamp *pStartTime, double timeout, NDArray *pImage)
 {
     int fd=-1;
     int fileExists=0;
     struct stat statBuff;
     epicsTimeStamp tStart, tCheck;
     time_t acqStartTime;
-    double deltaTime;
+    double deltaTime=0.;
     int status=-1;
-    const char *functionName = "readTiff";
-    int size, totalSize;
-    int numStrips, strip;
-    char *buffer;
-    TIFF *tiff=NULL;
-    epicsUInt32 uval;
-    int i;
-    int numBadPixels;
+    const char *functionName = "waitForFileToExist";
 
-    deltaTime = 0.;
     if (pStartTime) epicsTimeToTime_t(&acqStartTime, pStartTime);
     epicsTimeGetCurrent(&tStart);
-    
-    /* Suppress error messages from the TIFF library */
-    TIFFSetErrorHandler(NULL);
-    TIFFSetWarningHandler(NULL);
-    
+ 
     while (deltaTime <= timeout) {
         fd = open(fileName, O_RDONLY, 0);
         if ((fd >= 0) && (timeout != 0.)) {
@@ -347,8 +376,227 @@ asynStatus pilatusDetector::readTiff(const char *fileName, epicsTimeStamp *pStar
         return(asynError);
     }
     close(fd);
+    return(asynSuccess);
+}
+
+/** This function replaces bad pixels in the specified image with their replacements
+ * according to the bad pixel map.
+ */
+void pilatusDetector::correctBadPixels(NDArray *pImage)
+{
+    int i;
+    int numBadPixels;
+
+    getIntegerParam(PilatusNumBadPixels, &numBadPixels);
+    for (i=0; i<numBadPixels; i++) {
+        ((epicsInt32 *)pImage->pData)[this->badPixelMap[i].badIndex] = 
+        ((epicsInt32 *)pImage->pData)[this->badPixelMap[i].replaceIndex];
+    }    
+}
+
+int pilatusDetector::stringEndsWith(const char *aString, const char *aSubstring, int shouldIgnoreCase)
+{
+    int i, j;
+
+    i = strlen(aString) - 1;
+    j = strlen(aSubstring) - 1;
+    while (i >= 0 && j >= 0) {
+        if (shouldIgnoreCase)
+            if (tolower(aString[i]) != tolower(aSubstring[j])) return 0;
+        else
+            if (aString[i] != aSubstring[j]) return 0;
+        i--; j--;
+    }
+    return j < 0;
+}
+
+/** This function reads TIFF or CBF image files.  It is not intended to be general, it
+ * is intended to read the TIFF or CBF files that camserver creates.  It checks to make
+ * sure that the creation time of the file is after a start time passed to it, to force
+ * it to wait for a new file to be created.
+ */
+asynStatus pilatusDetector::readImageFile(const char *fileName, epicsTimeStamp *pStartTime, double timeout, NDArray *pImage)
+{
+    const char *functionName = "readImageFile";
+
+    if (stringEndsWith(fileName, ".tif", 1) || stringEndsWith(fileName, ".tiff", 1)) {
+        return readTiff(fileName, pStartTime, timeout, pImage);
+    } else if (stringEndsWith(fileName, ".cbf", 1)) {
+        return readCbf(fileName, pStartTime, timeout, pImage);
+    } else {
+        asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
+            "%s::%s, unsupported image file name extension, expected .tif or .cbf, fileName=%s\n",
+            driverName, functionName, fileName);
+        return(asynError);
+    }
+}
+
+/** This function reads CBF files using CBFlib.  It is not intended to be general, it is
+ * intended to read the CBF files that camserver creates.  It checks to make sure that
+ * the creation time of the file is after a start time passed to it, to force it to wait
+ * for a new file to be created.
+ */
+asynStatus pilatusDetector::readCbf(const char *fileName, epicsTimeStamp *pStartTime, double timeout, NDArray *pImage)
+{
+    epicsTimeStamp tStart, tCheck;
+    double deltaTime;
+    int status=-1;
+    const char *functionName = "readCbf";
+    cbf_handle cbf;
+    FILE *file=NULL;
+    unsigned int cbfCompression;
+    int cbfBinaryId;
+    size_t cbfElSize;
+    int cbfElSigned;
+    int cbfElUnsigned;
+    size_t cbfElements;
+    int cbfMinElement;
+    int cbfMaxElement;
+    const char *cbfByteOrder;
+    size_t cbfDimFast;
+    size_t cbfDimMid;
+    size_t cbfDimSlow;
+    size_t cbfPadding;
+    size_t cbfElementsRead;
 
     deltaTime = 0.;
+    epicsTimeGetCurrent(&tStart);
+
+    status = waitForFileToExist(fileName, pStartTime, timeout, pImage);
+    if (status != asynSuccess) {
+        return((asynStatus)status);
+    }
+
+    cbf_set_warning_messages_enabled(0);
+    cbf_set_error_messages_enabled(0);
+
+    while (deltaTime <= timeout) {
+        /* At this point we know the file exists, but it may not be completely
+         * written yet.  If we get errors then try again. */
+
+        status = cbf_make_handle(&cbf);
+        if (status != 0) {
+            asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
+                "%s::%s, failed to make CBF handle, error code %#x\n",
+                driverName, functionName, status);
+            return(asynError);
+        }
+
+        status = cbf_set_cbf_logfile(cbf, NULL);
+        if (status != 0) {
+            asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
+                "%s::%s, failed to disable CBF logging, error code %#x\n",
+                driverName, functionName, status);
+            return(asynError);
+        }
+
+        file = fopen(fileName, "rb");
+        if (file == NULL) {
+            asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
+                "%s::%s, failed to open CBF file \"%s\" for reading: %s\n",
+                driverName, functionName, fileName, strerror(errno));
+            cbf_free_handle(cbf);
+            return(asynError);
+        }
+
+        status = cbf_read_widefile(cbf, file, MSG_DIGESTNOW);
+        if (status != 0) goto retry;
+
+        status = cbf_find_tag(cbf, "_array_data.data");
+        if (status != 0) goto retry;
+
+        /* Do some basic checking that the image size is what we expect */
+
+        status = cbf_get_integerarrayparameters_wdims_fs(cbf, &cbfCompression,
+            &cbfBinaryId, &cbfElSize, &cbfElSigned, &cbfElUnsigned,
+            &cbfElements, &cbfMinElement, &cbfMaxElement, &cbfByteOrder,
+            &cbfDimFast, &cbfDimMid, &cbfDimSlow, &cbfPadding);
+        if (status != 0) goto retry;
+
+        if (cbfDimFast != (size_t)pImage->dims[0].size) {
+            asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
+                "%s::%s, image width incorrect =%zd, should be %d\n",
+                driverName, functionName, cbfDimFast, pImage->dims[0].size);
+            cbf_free_handle(cbf);
+            return(asynError);
+        }
+        if (cbfDimMid != (size_t)pImage->dims[1].size) {
+            asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
+                "%s::%s, image height incorrect =%zd, should be %d\n",
+                driverName, functionName, cbfDimMid, pImage->dims[1].size);
+            cbf_free_handle(cbf);
+            return(asynError);
+        }
+
+        /* Read the image */
+
+        status = cbf_get_integerarray(cbf, &cbfBinaryId, pImage->pData,
+            sizeof(epicsInt32), 1, cbfElements, &cbfElementsRead);
+        if (status != 0) goto retry;
+        if (cbfElements != cbfElementsRead) goto retry;
+
+        /* Sucesss! */
+        status = cbf_free_handle(cbf);
+        if (status != 0) {
+            asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
+                "%s::%s, failed to free CBF handle, error code %#x\n",
+                driverName, functionName, status);
+            return(asynError);
+        }
+        break;
+
+        retry:
+        status = cbf_free_handle(cbf);
+        if (status != 0) {
+            asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
+                "%s::%s, failed to free CBF handle, error code %#x\n",
+                driverName, functionName, status);
+            return(asynError);
+        }
+        /* Sleep, but check for stop event, which can be used to abort a long
+         * acquisition */
+        status = epicsEventWaitWithTimeout(this->stopEventId, FILE_READ_DELAY);
+        if (status == epicsEventWaitOK) {
+            return(asynError);
+        }
+        epicsTimeGetCurrent(&tCheck);
+        deltaTime = epicsTimeDiffInSeconds(&tCheck, &tStart);
+    }
+
+
+    correctBadPixels(pImage);
+    return(asynSuccess);
+}
+
+/** This function reads TIFF files using libTiff.  It is not intended to be general,
+ * it is intended to read the TIFF files that camserver creates.  It checks to make sure
+ * that the creation time of the file is after a start time passed to it, to force it to
+ * wait for a new file to be created.
+ */
+asynStatus pilatusDetector::readTiff(const char *fileName, epicsTimeStamp *pStartTime, double timeout, NDArray *pImage)
+{
+    epicsTimeStamp tStart, tCheck;
+    double deltaTime;
+    int status=-1;
+    const char *functionName = "readTiff";
+    int size, totalSize;
+    int numStrips, strip;
+    char *buffer;
+    TIFF *tiff=NULL;
+    epicsUInt32 uval;
+
+    deltaTime = 0.;
+    epicsTimeGetCurrent(&tStart);
+
+    /* Suppress error messages from the TIFF library */
+    TIFFSetErrorHandler(NULL);
+    TIFFSetWarningHandler(NULL);
+
+    status = waitForFileToExist(fileName, pStartTime, timeout, pImage);
+    if (status != asynSuccess) {
+        return((asynStatus)status);
+    }
+
     while (deltaTime <= timeout) {
         /* At this point we know the file exists, but it may not be completely written yet.
          * If we get errors then try again */
@@ -413,12 +661,7 @@ asynStatus pilatusDetector::readTiff(const char *fileName, epicsTimeStamp *pStar
 
     if (tiff != NULL) TIFFClose(tiff);
 
-    /* Correct the bad pixels */
-    getIntegerParam(PilatusNumBadPixels, &numBadPixels);
-    for (i=0; i<numBadPixels; i++) {
-        ((epicsInt32 *)pImage->pData)[this->badPixelMap[i].badIndex] = 
-        ((epicsInt32 *)pImage->pData)[this->badPixelMap[i].replaceIndex];
-    }    
+    correctBadPixels(pImage);
     return(asynSuccess);
 }   
 
@@ -567,7 +810,7 @@ static void pilatusTaskC(void *drvPvt)
     pPvt->pilatusTask();
 }
 
-/** This thread controls acquisition, reads TIFF files to get the image data, and
+/** This thread controls acquisition, reads image files to get the image data, and
   * does the callbacks to send it to higher layers */
 void pilatusDetector::pilatusTask()
 {
@@ -577,9 +820,10 @@ void pilatusDetector::pilatusTask()
     int multipleFileNextImage;  /* This is the next image number, starting at 0 */
     int acquire;
     ADStatus_t acquiring;
+    double startAngle;
     NDArray *pImage;
     double acquireTime, acquirePeriod;
-    double readTiffTimeout, timeout;
+    double readImageFileTimeout, timeout;
     int triggerMode;
     epicsTimeStamp startTime;
     const char *functionName = "pilatusTask";
@@ -618,7 +862,7 @@ void pilatusDetector::pilatusTask()
         /* Get the exposure parameters */
         getDoubleParam(ADAcquireTime, &acquireTime);
         getDoubleParam(ADAcquirePeriod, &acquirePeriod);
-        getDoubleParam(PilatusTiffTimeout, &readTiffTimeout);
+        getDoubleParam(PilatusImageFileTmot, &readImageFileTimeout);
         
         /* Get the acquisition parameters */
         getIntegerParam(ADTriggerMode, &triggerMode);
@@ -626,6 +870,11 @@ void pilatusDetector::pilatusTask()
         
         acquiring = ADStatusAcquire;
         setIntegerParam(ADStatus, acquiring);
+
+        /* Reset the MX settings start angle */
+        getDoubleParam(PilatusStartAngle, &startAngle);
+        epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "mxsettings Start_angle %f", startAngle);
+        writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
 
         /* Create the full filename */
         createFileName(sizeof(fullFileName), fullFileName);
@@ -679,7 +928,7 @@ void pilatusDetector::pilatusTask()
                 /* We release the mutex when waiting for 7OK because this takes a long time and
                  * we need to allow abort operations to get through */
                 this->unlock();
-                status = readCamserver(acquireTime + readTiffTimeout);
+                status = readCamserver(acquireTime + readImageFileTimeout);
                 this->lock();
                 /* If there was an error jump to bottom of loop */
                 if (status) {
@@ -703,13 +952,13 @@ void pilatusDetector::pilatusTask()
                 getIntegerParam(ADMaxSizeX, &dims[0]);
                 getIntegerParam(ADMaxSizeY, &dims[1]);
                 pImage = this->pNDArrayPool->alloc(2, dims, NDInt32, 0, NULL);
-                epicsSnprintf(statusMessage, sizeof(statusMessage), "Reading TIFF file %s", fullFileName);
+                epicsSnprintf(statusMessage, sizeof(statusMessage), "Reading image file %s", fullFileName);
                 setStringParam(ADStatusMessage, statusMessage);
                 callParamCallbacks();
-                /* We release the mutex when calling readTiff, because this takes a long time and
+                /* We release the mutex when calling readImageFile, because this takes a long time and
                  * we need to allow abort operations to get through */
                 this->unlock();
-                status = readTiff(fullFileName, &startTime, acquireTime + readTiffTimeout, pImage); 
+                status = readImageFile(fullFileName, &startTime, acquireTime + readImageFileTimeout, pImage); 
                 this->lock();
                 /* If there was an error jump to bottom of loop */
                 if (status) {
@@ -765,13 +1014,13 @@ void pilatusDetector::pilatusTask()
         /* Wait for the 7OK response from camserver in the case of multiple images */
         if ((numImages > 1) && (status == asynSuccess)) {
             /* If arrayCallbacks is 0we will have gone through the above loop without waiting
-             * for each TIFF file to be written.  Thus, we may need to wait a long time for
+             * for each image file to be written.  Thus, we may need to wait a long time for
              * the 7OK response.  
              * If arrayCallbacks is 1 then the response should arrive fairly soon. */
             if (arrayCallbacks) 
-                timeout = readTiffTimeout;
+                timeout = readImageFileTimeout;
             else 
-                timeout = numImages * acquireTime + readTiffTimeout;
+                timeout = numImages * acquireTime + readImageFileTimeout;
             setStringParam(ADStatusMessage, "Waiting for 7OK response");
             callParamCallbacks();
             readCamserver(timeout);
@@ -818,6 +1067,9 @@ asynStatus pilatusDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
                (function == ADNumImages) ||
                (function == ADNumExposures)) {
         setAcquireParams();
+    } else if (function == PilatusNumOscill) {
+        epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "mxsettings N_oscillations %d", value);
+        writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
     } else { 
         /* If this parameter belongs to a base class call its method */
         if (function < FIRST_PILATUS_PARAM) status = ADDriver::writeInt32(pasynUser, value);
@@ -847,6 +1099,8 @@ asynStatus pilatusDetector::writeFloat64(asynUser *pasynUser, epicsFloat64 value
 {
     int function = pasynUser->reason;
     asynStatus status = asynSuccess;
+    double energyLow, energyHigh;
+    double beamX, beamY;
     const char *functionName = "writeFloat64";
 
     /* Set the parameter and readback in the parameter library.  This may be overwritten when we read back the
@@ -861,6 +1115,57 @@ asynStatus pilatusDetector::writeFloat64(asynUser *pasynUser, epicsFloat64 value
                (function == ADAcquirePeriod) ||
                (function == PilatusDelayTime)) {
         setAcquireParams();
+    } else if (function == PilatusWavelength) {
+        epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "mxsettings Wavelength %f", value);
+        writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
+    } else if ((function == PilatusEnergyLow) ||
+               (function == PilatusEnergyHigh)) {
+        getDoubleParam(PilatusEnergyLow, &energyLow);
+        getDoubleParam(PilatusEnergyHigh, &energyHigh);
+        epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "mxsettings Energy_range %f,%f", energyLow, energyHigh);
+        writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
+    } else if (function == PilatusDetDist) {
+        epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "mxsettings Detector_distance %f", value / 1000.0);
+        writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
+    } else if (function == PilatusDetVOffset) {
+        epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "mxsettings Detector_Voffset %f", value / 1000.0);
+        writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
+    } else if ((function == PilatusBeamX) ||
+               (function == PilatusBeamY)) {
+        getDoubleParam(PilatusBeamX, &beamX);
+        getDoubleParam(PilatusBeamY, &beamY);
+        epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "mxsettings Beam_xy %f,%f", beamX, beamY);
+        writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
+    } else if (function == PilatusFlux) {
+        epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "mxsettings Flux %f", value);
+        writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
+    } else if (function == PilatusFilterTransm) {
+        epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "mxsettings Filter_transmission %f", value);
+        writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
+    } else if (function == PilatusStartAngle) {
+        epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "mxsettings Start_angle %f", value);
+        writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
+    } else if (function == PilatusAngleIncr) {
+        epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "mxsettings Angle_increment %f", value);
+        writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
+    } else if (function == PilatusDet2theta) {
+        epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "mxsettings Detector_2theta %f", value);
+        writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
+    } else if (function == PilatusPolarization) {
+        epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "mxsettings Polarization %f", value);
+        writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
+    } else if (function == PilatusAlpha) {
+        epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "mxsettings Alpha %f", value);
+        writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
+    } else if (function == PilatusKappa) {
+        epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "mxsettings Kappa %f", value);
+        writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
+    } else if (function == PilatusPhi) {
+        epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "mxsettings Phi %f", value);
+        writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
+    } else if (function == PilatusChi) {
+        epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "mxsettings Chi %f", value);
+        writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
     } else {
         /* If this parameter belongs to a base class call its method */
         if (function < FIRST_PILATUS_PARAM) status = ADDriver::writeFloat64(pasynUser, value);
@@ -903,6 +1208,10 @@ asynStatus pilatusDetector::writeOctet(asynUser *pasynUser, const char *value,
     } else if (function == NDFilePath) {
         this->checkPath();
         epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "imgpath %s", value);
+        writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
+    } else if (function == PilatusOscillAxis) {
+        epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "mxsettings Oscillation_axis %s",
+            strlen(value) == 0 ? "(nil)" : value);
         writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
     } else {
         /* If this parameter belongs to a base class call its method */
@@ -1004,7 +1313,7 @@ pilatusDetector::pilatusDetector(const char *portName, const char *camserverPort
         return;
     }
     
-    /* Allocate the raw buffer we use to readTiff files.  Only do this once */
+    /* Allocate the raw buffer we use to read image files.  Only do this once */
     dims[0] = maxSizeX;
     dims[1] = maxSizeY;
     /* Allocate the raw buffer we use for flat fields. */
@@ -1016,12 +1325,31 @@ pilatusDetector::pilatusDetector(const char *portName, const char *camserverPort
     createParam(PilatusDelayTimeString,      asynParamFloat64, &PilatusDelayTime);
     createParam(PilatusThresholdString,      asynParamFloat64, &PilatusThreshold);
     createParam(PilatusArmedString,          asynParamInt32,   &PilatusArmed);
-    createParam(PilatusTiffTimeoutString,    asynParamFloat64, &PilatusTiffTimeout);
+    createParam(PilatusImageFileTmotString,  asynParamFloat64, &PilatusImageFileTmot);
     createParam(PilatusBadPixelFileString,   asynParamOctet,   &PilatusBadPixelFile);
     createParam(PilatusNumBadPixelsString,   asynParamInt32,   &PilatusNumBadPixels);
     createParam(PilatusFlatFieldFileString,  asynParamOctet,   &PilatusFlatFieldFile);
     createParam(PilatusMinFlatFieldString,   asynParamInt32,   &PilatusMinFlatField);
     createParam(PilatusFlatFieldValidString, asynParamInt32,   &PilatusFlatFieldValid);
+    createParam(PilatusWavelengthString,     asynParamFloat64, &PilatusWavelength);
+    createParam(PilatusEnergyLowString,      asynParamFloat64, &PilatusEnergyLow);
+    createParam(PilatusEnergyHighString,     asynParamFloat64, &PilatusEnergyHigh);
+    createParam(PilatusDetDistString,        asynParamFloat64, &PilatusDetDist);
+    createParam(PilatusDetVOffsetString,     asynParamFloat64, &PilatusDetVOffset);
+    createParam(PilatusBeamXString,          asynParamFloat64, &PilatusBeamX);
+    createParam(PilatusBeamYString,          asynParamFloat64, &PilatusBeamY);
+    createParam(PilatusFluxString,           asynParamFloat64, &PilatusFlux);
+    createParam(PilatusFilterTransmString,   asynParamFloat64, &PilatusFilterTransm);
+    createParam(PilatusStartAngleString,     asynParamFloat64, &PilatusStartAngle);
+    createParam(PilatusAngleIncrString,      asynParamFloat64, &PilatusAngleIncr);
+    createParam(PilatusDet2thetaString,      asynParamFloat64, &PilatusDet2theta);
+    createParam(PilatusPolarizationString,   asynParamFloat64, &PilatusPolarization);
+    createParam(PilatusAlphaString,          asynParamFloat64, &PilatusAlpha);
+    createParam(PilatusKappaString,          asynParamFloat64, &PilatusKappa);
+    createParam(PilatusPhiString,            asynParamFloat64, &PilatusPhi);
+    createParam(PilatusChiString,            asynParamFloat64, &PilatusChi);
+    createParam(PilatusOscillAxisString,     asynParamOctet,   &PilatusOscillAxis);
+    createParam(PilatusNumOscillString,      asynParamInt32,   &PilatusNumOscill);
 
     /* Set some default values for parameters */
     status =  setStringParam (ADManufacturer, "Dectris");
@@ -1037,18 +1365,11 @@ pilatusDetector::pilatusDetector(const char *portName, const char *camserverPort
     status |= setIntegerParam(NDDataType,  NDUInt32);
     status |= setIntegerParam(ADImageMode, ADImageContinuous);
     status |= setIntegerParam(ADTriggerMode, TMInternal);
-    status |= setDoubleParam (ADAcquireTime, .001);
-    status |= setDoubleParam (ADAcquirePeriod, .005);
-    status |= setIntegerParam(ADNumImages, 100);
 
     status |= setIntegerParam(PilatusArmed, 0);
-    status |= setDoubleParam (PilatusThreshold, 10.0);
-    status |= setDoubleParam (PilatusDelayTime, 0);
-    status |= setDoubleParam (PilatusTiffTimeout, 20.);
     status |= setStringParam (PilatusBadPixelFile, "");
     status |= setIntegerParam(PilatusNumBadPixels, 0);
     status |= setStringParam (PilatusFlatFieldFile, "");
-    status |= setIntegerParam(PilatusMinFlatField, 100);
     status |= setIntegerParam(PilatusFlatFieldValid, 0);
        
     if (status) {
