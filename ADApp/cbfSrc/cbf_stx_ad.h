@@ -33,6 +33,10 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
+#ifdef ERROR 
+  #undef ERROR
+#endif
+
 /* Tokens.  */
 #ifndef YYTOKENTYPE
 # define YYTOKENTYPE

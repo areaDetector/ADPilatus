@@ -59,6 +59,9 @@
 #define YYLSP_NEEDED 0
 
 
+#ifdef ERROR
+  #undef ERROR
+#endif
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
