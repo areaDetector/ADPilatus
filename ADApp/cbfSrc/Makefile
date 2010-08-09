@@ -4,7 +4,8 @@ include $(TOP)/configure/CONFIG
 #  ADD MACRO DEFINITIONS AFTER THIS LINE
 #=======================================
 
-LIBRARY_IOC = cbfad
+LIBRARY_IOC_Linux = cbfad
+LIBRARY_IOC_solaris = cbfad
 
 cbfad_SRCS += cbf.c
 cbfad_SRCS += cbf_alloc.c
