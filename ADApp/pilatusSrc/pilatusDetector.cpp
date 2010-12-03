@@ -683,24 +683,44 @@ asynStatus pilatusDetector::setAcquireParams()
     if (triggerMode != TMExternalEnable) {
         setIntegerParam(ADNumExposures, 1);
     }
-
+    
     getIntegerParam(ADNumImages, &ival);
+    if (ival < 1) {
+        ival = 1;
+        setIntegerParam(ADNumImages, ival);
+    }
     epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "nimages %d", ival);
     writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT); 
 
     getIntegerParam(ADNumExposures, &ival);
+    if (ival < 1) {
+        ival = 1;
+        setIntegerParam(ADNumExposures, ival);
+    }
     epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "nexpframe %d", ival);
     writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT); 
 
     getDoubleParam(ADAcquireTime, &dval);
+    if (dval <= 0.) {
+        dval = 1.;
+        setDoubleParam(ADAcquireTime, dval);
+    }
     epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "exptime %f", dval);
     writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
 
     getDoubleParam(ADAcquirePeriod, &dval);
+    if (dval <= 0.) {
+        dval = 2.;
+        setDoubleParam(ADAcquirePeriod, dval);
+    }
     epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "expperiod %f", dval);
     writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
 
     getDoubleParam(PilatusDelayTime, &dval);
+    if (dval < 0.) {
+        dval = 0.;
+        setDoubleParam(PilatusDelayTime, dval);
+    }
     epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "delay %f", dval);
     writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
     
