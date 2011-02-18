@@ -5,7 +5,9 @@ include $(TOP)/configure/CONFIG
 #=============================
 
 LIBRARY_IOC_Linux = pilatusDetector
+LIBRARY_IOC_Darwin = pilatusDetector
 PROD_IOC_Linux += pilatusDetectorApp
+PROD_IOC_Darwin += pilatusDetectorApp
 
 USR_INCLUDES += -I$(TOP)/ADApp/cbfSrc
 
