@@ -5,6 +5,7 @@ include $(TOP)/configure/CONFIG
 #=======================================
 
 LIBRARY_IOC_Linux = cbfad
+LIBRARY_IOC_Darwin = cbfad
 LIBRARY_IOC_solaris = cbfad
 
 cbfad_SRCS += cbf.c
