@@ -960,6 +960,7 @@ void pilatusDetector::pilatusTask()
                 /* If this is a multi-file acquisition the file name is built differently */
                 epicsSnprintf(fullFileName, sizeof(fullFileName), multipleFileFormat, 
                               multipleFileNumber);
+                setStringParam(NDFullFileName, fullFileName);
             }
             getIntegerParam(NDArrayCallbacks, &arrayCallbacks);
 
