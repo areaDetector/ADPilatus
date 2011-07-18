@@ -857,7 +857,7 @@ void pilatusDetector::pilatusTask()
     int status = asynSuccess;
     int imageCounter;
     int numImages;
-    int multipleFileNextImage;  /* This is the next image number, starting at 0 */
+    int multipleFileNextImage=0;  /* This is the next image number, starting at 0 */
     int acquire;
     ADStatus_t acquiring;
     double startAngle;
@@ -873,7 +873,6 @@ void pilatusDetector::pilatusTask()
     int dims[2];
     int arrayCallbacks;
     int flatFieldValid;
-    int abortStatus;
 
     this->lock();
 
