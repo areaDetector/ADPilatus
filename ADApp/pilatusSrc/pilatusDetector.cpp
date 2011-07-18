@@ -360,6 +360,7 @@ asynStatus pilatusDetector::waitForFileToExist(const char *fileName, epicsTimeSt
         /* Sleep, but check for stop event, which can be used to abort a long acquisition */
         status = epicsEventWaitWithTimeout(this->stopEventId, FILE_READ_DELAY);
         if (status == epicsEventWaitOK) {
+            setStringParam(ADStatusMessage, "Acquisition aborted");
             return(asynError);
         }
         epicsTimeGetCurrent(&tCheck);
@@ -372,7 +373,9 @@ asynStatus pilatusDetector::waitForFileToExist(const char *fileName, epicsTimeSt
         if (fileExists) {
             asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
                 "  file exists but is more than 10 seconds old, possible clock synchronization problem\n");
-        } 
+            setStringParam(ADStatusMessage, "Image file is more than 10 seconds old");
+        } else
+            setStringParam(ADStatusMessage, "Timeout waiting for file to be created");
         return(asynError);
     }
     close(fd);
@@ -428,6 +431,7 @@ asynStatus pilatusDetector::readImageFile(const char *fileName, epicsTimeStamp *
         asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
             "%s::%s, unsupported image file name extension, expected .tif or .cbf, fileName=%s\n",
             driverName, functionName, fileName);
+        setStringParam(ADStatusMessage, "Unsupported file extension, expected .tif or .cbf");
         return(asynError);
     }
 }
@@ -730,7 +734,7 @@ asynStatus pilatusDetector::setAcquireParams()
 
 asynStatus pilatusDetector::setThreshold()
 {
-    int igain;
+    int igain, status;
     double threshold, dgain;
     
     getDoubleParam(ADGain, &dgain);
@@ -740,7 +744,17 @@ asynStatus pilatusDetector::setThreshold()
     getDoubleParam(PilatusThreshold, &threshold);
     epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "SetThreshold %s %f", 
                     gainStrings[igain], threshold*1000.);
-    writeReadCamserver(90.0);  /* This command can take 78 seconds on a 6M */
+    /* Set the status to waiting so we can be notified when it has finished */
+    setIntegerParam(ADStatus, ADStatusWaiting);
+    setStringParam(ADStatusMessage, "Setting threshold");
+    callParamCallbacks();
+    
+    status=writeReadCamserver(90.0);  /* This command can take 78 seconds on a 6M */
+    if (status)
+        setIntegerParam(ADStatus, ADStatusError);
+    else
+        setIntegerParam(ADStatus, ADStatusIdle);
+    callParamCallbacks();
     return(asynSuccess);
 }
 
@@ -791,6 +805,7 @@ asynStatus pilatusDetector::readCamserver(double timeout)
         /* Sleep, but check for stop event, which can be used to abort a long acquisition */
         eventStatus = epicsEventWaitWithTimeout(this->stopEventId, ASYN_POLL_TIME);
         if (eventStatus == epicsEventWaitOK) {
+            setStringParam(ADStatusMessage, "Acquisition aborted");
             return(asynError);
         }
         epicsTimeGetCurrent(&tCheck);
@@ -802,10 +817,14 @@ asynStatus pilatusDetector::readCamserver(double timeout)
                     driverName, functionName, timeout, status, nread, this->fromCamserver);
     else {
         /* Look for the string OK in the response */
-        if (!strstr(this->fromCamserver, "OK"))
-        asynPrint(pasynUser, ASYN_TRACE_ERROR,
-                    "%s:%s unexpected response from camserver, no OK, response=%s\n",
-                    driverName, functionName, this->fromCamserver);
+        if (!strstr(this->fromCamserver, "OK")) {
+            asynPrint(pasynUser, ASYN_TRACE_ERROR,
+                      "%s:%s unexpected response from camserver, no OK, response=%s\n",
+                      driverName, functionName, this->fromCamserver);
+            setStringParam(ADStatusMessage, "Error from camserver");
+            status = asynError;
+        } else
+            setStringParam(ADStatusMessage, "Camserver returned OK");
     }
 
     /* Set output string so it can get back to EPICS */
@@ -854,6 +873,7 @@ void pilatusDetector::pilatusTask()
     int dims[2];
     int arrayCallbacks;
     int flatFieldValid;
+    int abortStatus;
 
     this->lock();
 
@@ -864,8 +884,10 @@ void pilatusDetector::pilatusTask()
         
         /* If we are not acquiring then wait for a semaphore that is given when acquisition is started */
         if (!acquire) {
+            /* Only set the status message if we didn't encounter any errors last time, so we don't overwrite the 
+             error message */
+            if (!status)
             setStringParam(ADStatusMessage, "Waiting for acquire command");
-            setIntegerParam(ADStatus, ADStatusIdle);
             callParamCallbacks();
             /* Release the lock while we wait for an event that says acquire has started, then lock again */
             this->unlock();
@@ -928,16 +950,27 @@ void pilatusDetector::pilatusTask()
         setStringParam(ADStatusMessage, "Starting exposure");
         /* Send the acquire command to camserver and wait for the 15OK response */
         writeReadCamserver(2.0);
-        /* Open the shutter */
-        setShutter(1);
-        /* Set the armed flag */
-        setIntegerParam(PilatusArmed, 1);
-        /* Create the format string for constructing file names for multi-image collection */
-        makeMultipleFileFormat(fullFileName);
-        multipleFileNextImage = 0;
-        /* Call the callbacks to update any changes */
-        setStringParam(NDFullFileName, fullFileName);
-        callParamCallbacks();
+        /* Do another read in case there is an ERR string at the end of the input buffer */
+        status=readCamserver(0.0);
+
+        /* If the status wasn't asynSuccess or asynTimeout, report the error */
+        if (status>1) {
+            acquire = 0;
+        }
+        else {
+            /* Set status back to asynSuccess as the timeout was expected */
+            status = asynSuccess;
+            /* Open the shutter */
+            setShutter(1);
+            /* Set the armed flag */
+            setIntegerParam(PilatusArmed, 1);
+            /* Create the format string for constructing file names for multi-image collection */
+            makeMultipleFileFormat(fullFileName);
+            multipleFileNextImage = 0;
+            /* Call the callbacks to update any changes */
+            setStringParam(NDFullFileName, fullFileName);
+            callParamCallbacks();
+        }
 
         while (acquire) {
             if (numImages == 1) {
@@ -954,6 +987,8 @@ void pilatusDetector::pilatusTask()
                 /* If there was an error jump to bottom of loop */
                 if (status) {
                     acquire = 0;
+                    if(status==asynTimeout)
+                      setStringParam(ADStatusMessage, "Timeout waiting for camserver response");
                     continue;
                 }
              } else {
@@ -1056,6 +1091,12 @@ void pilatusDetector::pilatusTask()
         setIntegerParam(ADAcquire, 0);
         setIntegerParam(PilatusArmed, 0);
 
+        /* If everything was ok, set the status back to idle */
+        if (!status) 
+            setIntegerParam(ADStatus, ADStatusIdle);
+        else
+            setIntegerParam(ADStatus, ADStatusError);
+    
         /* Call the callbacks to update any changes */
         callParamCallbacks();
     }
@@ -1078,17 +1119,17 @@ asynStatus pilatusDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
 
     if (function == ADAcquire) {
         getIntegerParam(ADStatus, &adstatus);
-        if (value && (adstatus == ADStatusIdle)) {
+        if (value && (adstatus == ADStatusIdle || adstatus == ADStatusError)) {
             /* Send an event to wake up the Pilatus task.  */
             epicsEventSignal(this->startEventId);
         } 
         if (!value && (adstatus != ADStatusIdle)) {
             /* This was a command to stop acquisition */
-            epicsEventSignal(this->stopEventId);
             epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "Stop");
             writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
             epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "K");
             writeCamserver(CAMSERVER_DEFAULT_TIMEOUT);
+            epicsEventSignal(this->stopEventId);
         }
     } else if ((function == ADTriggerMode) ||
                (function == ADNumImages) ||
@@ -1233,9 +1274,9 @@ asynStatus pilatusDetector::writeOctet(asynUser *pasynUser, const char *value,
     } else if (function == PilatusFlatFieldFile) {
         this->readFlatFieldFile(value);
     } else if (function == NDFilePath) {
-        this->checkPath();
         epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "imgpath %s", value);
         writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
+        this->checkPath();
     } else if (function == PilatusOscillAxis) {
         epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "mxsettings Oscillation_axis %s",
             strlen(value) == 0 ? "(nil)" : value);
