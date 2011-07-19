@@ -70,13 +70,16 @@ static const char *driverName = "pilatusDetector";
 
 #define PilatusDelayTimeString      "DELAY_TIME"
 #define PilatusThresholdString      "THRESHOLD"
+#define PilatusThresholdApplyString "THRESHOLD_APPLY"
+#define PilatusThresholdAutoApplyString "THRESHOLD_AUTO_APPLY"
 #define PilatusArmedString          "ARMED"
+#define PilatusImageFileTmotString  "IMAGE_FILE_TMOT"
 #define PilatusBadPixelFileString   "BAD_PIXEL_FILE"
 #define PilatusNumBadPixelsString   "NUM_BAD_PIXELS"
 #define PilatusFlatFieldFileString  "FLAT_FIELD_FILE"
 #define PilatusMinFlatFieldString   "MIN_FLAT_FIELD"
 #define PilatusFlatFieldValidString "FLAT_FIELD_VALID"
-#define PilatusImageFileTmotString  "IMAGE_FILE_TMOT"
+#define PilatusGapFillString        "GAP_FILL"
 #define PilatusWavelengthString     "WAVELENGTH"
 #define PilatusEnergyLowString      "ENERGY_LOW"
 #define PilatusEnergyHighString     "ENERGY_HIGH"
@@ -118,6 +121,8 @@ public:
     int PilatusDelayTime;
     #define FIRST_PILATUS_PARAM PilatusDelayTime
     int PilatusThreshold;
+    int PilatusThresholdApply;
+    int PilatusThresholdAutoApply;
     int PilatusArmed;
     int PilatusImageFileTmot;
     int PilatusBadPixelFile;
@@ -125,6 +130,7 @@ public:
     int PilatusFlatFieldFile;
     int PilatusMinFlatField;
     int PilatusFlatFieldValid;
+    int PilatusGapFill;
     int PilatusWavelength;
     int PilatusEnergyLow;
     int PilatusEnergyHigh;
@@ -729,7 +735,18 @@ asynStatus pilatusDetector::setAcquireParams()
     }
     epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "delay %f", dval);
     writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
-    
+
+    status = getIntegerParam(PilatusGapFill, &ival);
+    if ((status != asynSuccess) || (ival < -2) || (ival > 0)) {
+        ival = -2;
+        setIntegerParam(PilatusGapFill, ival);
+    }
+    /* -2 is used to indicate that GapFill is not supported because it is a single element detector */
+    if (ival != -2) {
+        epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "gapfill %d", ival);
+        writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT); 
+    }
+   
     return(asynSuccess);
 
 }
@@ -756,7 +773,13 @@ asynStatus pilatusDetector::setThreshold()
         setIntegerParam(ADStatus, ADStatusError);
     else
         setIntegerParam(ADStatus, ADStatusIdle);
+    setIntegerParam(PilatusThresholdApply, 0);
     callParamCallbacks();
+
+    /* The SetThreshold command resets numimages to 1 and gapfill to 0, so re-send current
+     * acquisition parameters */
+    setAcquireParams();
+
     return(asynSuccess);
 }
 
@@ -1134,8 +1157,11 @@ asynStatus pilatusDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         }
     } else if ((function == ADTriggerMode) ||
                (function == ADNumImages) ||
-               (function == ADNumExposures)) {
+               (function == ADNumExposures) ||
+               (function == PilatusGapFill)) {
         setAcquireParams();
+    } else if (function == PilatusThresholdApply) {
+        setThreshold();
     } else if (function == PilatusNumOscill) {
         epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "mxsettings N_oscillations %d", value);
         writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
@@ -1170,16 +1196,20 @@ asynStatus pilatusDetector::writeFloat64(asynUser *pasynUser, epicsFloat64 value
     asynStatus status = asynSuccess;
     double energyLow, energyHigh;
     double beamX, beamY;
+    int thresholdAutoApply;
     const char *functionName = "writeFloat64";
 
     /* Set the parameter and readback in the parameter library.  This may be overwritten when we read back the
      * status at the end, but that's OK */
     status = setDoubleParam(function, value);
+    
 
     /* Changing any of the following parameters requires recomputing the base image */
     if ((function == ADGain) ||
         (function == PilatusThreshold)) {
-        setThreshold();
+        getIntegerParam(PilatusThresholdAutoApply, &thresholdAutoApply);
+        if (thresholdAutoApply) 
+            setThreshold();
     } else if ((function == ADAcquireTime) ||
                (function == ADAcquirePeriod) ||
                (function == PilatusDelayTime)) {
@@ -1393,6 +1423,8 @@ pilatusDetector::pilatusDetector(const char *portName, const char *camserverPort
 
     createParam(PilatusDelayTimeString,      asynParamFloat64, &PilatusDelayTime);
     createParam(PilatusThresholdString,      asynParamFloat64, &PilatusThreshold);
+    createParam(PilatusThresholdApplyString, asynParamInt32,   &PilatusThresholdApply);
+    createParam(PilatusThresholdAutoApplyString, asynParamInt32,   &PilatusThresholdAutoApply);
     createParam(PilatusArmedString,          asynParamInt32,   &PilatusArmed);
     createParam(PilatusImageFileTmotString,  asynParamFloat64, &PilatusImageFileTmot);
     createParam(PilatusBadPixelFileString,   asynParamOctet,   &PilatusBadPixelFile);
@@ -1400,6 +1432,7 @@ pilatusDetector::pilatusDetector(const char *portName, const char *camserverPort
     createParam(PilatusFlatFieldFileString,  asynParamOctet,   &PilatusFlatFieldFile);
     createParam(PilatusMinFlatFieldString,   asynParamInt32,   &PilatusMinFlatField);
     createParam(PilatusFlatFieldValidString, asynParamInt32,   &PilatusFlatFieldValid);
+    createParam(PilatusGapFillString,        asynParamInt32,   &PilatusGapFill);
     createParam(PilatusWavelengthString,     asynParamFloat64, &PilatusWavelength);
     createParam(PilatusEnergyLowString,      asynParamFloat64, &PilatusEnergyLow);
     createParam(PilatusEnergyHighString,     asynParamFloat64, &PilatusEnergyHigh);
