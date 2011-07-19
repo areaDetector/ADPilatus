@@ -675,8 +675,10 @@ asynStatus pilatusDetector::setAcquireParams()
     int ival;
     double dval;
     int triggerMode;
+    asynStatus status;
     
-    getIntegerParam(ADTriggerMode, &triggerMode);
+    status = getIntegerParam(ADTriggerMode, &triggerMode);
+    if (status != asynSuccess) triggerMode = TMInternal;
     
      /* When we change modes download all exposure parameters, since some modes
      * replace values with new parameters */
@@ -688,40 +690,40 @@ asynStatus pilatusDetector::setAcquireParams()
         setIntegerParam(ADNumExposures, 1);
     }
     
-    getIntegerParam(ADNumImages, &ival);
-    if (ival < 1) {
+    status = getIntegerParam(ADNumImages, &ival);
+    if ((status != asynSuccess) || (ival < 1)) {
         ival = 1;
         setIntegerParam(ADNumImages, ival);
     }
     epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "nimages %d", ival);
     writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT); 
 
-    getIntegerParam(ADNumExposures, &ival);
-    if (ival < 1) {
+    status = getIntegerParam(ADNumExposures, &ival);
+    if ((status != asynSuccess) || (ival < 1)) {
         ival = 1;
         setIntegerParam(ADNumExposures, ival);
     }
     epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "nexpframe %d", ival);
     writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT); 
 
-    getDoubleParam(ADAcquireTime, &dval);
-    if (dval <= 0.) {
+    status = getDoubleParam(ADAcquireTime, &dval);
+    if ((status != asynSuccess) || (dval < 0.)) {
         dval = 1.;
         setDoubleParam(ADAcquireTime, dval);
     }
     epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "exptime %f", dval);
     writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
 
-    getDoubleParam(ADAcquirePeriod, &dval);
-    if (dval <= 0.) {
+    status = getDoubleParam(ADAcquirePeriod, &dval);
+    if ((status != asynSuccess) || (dval < 0.)) {
         dval = 2.;
         setDoubleParam(ADAcquirePeriod, dval);
     }
     epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "expperiod %f", dval);
     writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
 
-    getDoubleParam(PilatusDelayTime, &dval);
-    if (dval < 0.) {
+    status = getDoubleParam(PilatusDelayTime, &dval);
+    if ((status != asynSuccess) || (dval < 0.)) {
         dval = 0.;
         setDoubleParam(PilatusDelayTime, dval);
     }
