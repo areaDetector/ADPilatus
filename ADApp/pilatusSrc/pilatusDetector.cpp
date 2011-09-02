@@ -837,7 +837,10 @@ asynStatus pilatusDetector::readCamserver(double timeout)
         deltaTime = epicsTimeDiffInSeconds(&tCheck, &tStart);
     }
 
-    if (status) asynPrint(pasynUser, ASYN_TRACE_ERROR,
+    // If we got asynTimeout, and timeout=0 then this is not an error, it is a poll checking for possible reply and we are done
+   if ((status == asynTimeout) && (timeout == 0)) return(asynSuccess);
+   if (status != asynSuccess)
+        asynPrint(pasynUser, ASYN_TRACE_ERROR,
                     "%s:%s, timeout=%f, status=%d received %d bytes\n%s\n",
                     driverName, functionName, timeout, status, nread, this->fromCamserver);
     else {
@@ -1147,7 +1150,7 @@ asynStatus pilatusDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
             /* Send an event to wake up the Pilatus task.  */
             epicsEventSignal(this->startEventId);
         } 
-        if (!value && (adstatus != ADStatusIdle)) {
+        if (!value && (adstatus == ADStatusAcquire)) {
             /* This was a command to stop acquisition */
             epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "Stop");
             writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
