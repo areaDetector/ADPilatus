@@ -44,7 +44,9 @@
 #define MAX_BAD_PIXELS 100
 /** Time to poll when reading from camserver */
 #define ASYN_POLL_TIME .01 
-#define CAMSERVER_DEFAULT_TIMEOUT 1.0 
+#define CAMSERVER_DEFAULT_TIMEOUT 1.0
+/** Additional time to wait for a camserver response after the acquire should be complete */ 
+#define CAMSERVER_ACQUIRE_TIMEOUT 10.
 /** Time between checking to see if image file is complete */
 #define FILE_READ_DELAY .01
 
@@ -948,6 +950,7 @@ void pilatusDetector::pilatusTask()
     int status = asynSuccess;
     int imageCounter;
     int numImages;
+    int numExposures;
     int multipleFileNextImage=0;  /* This is the next image number, starting at 0 */
     int acquire;
     ADStatus_t acquiring;
@@ -1003,6 +1006,7 @@ void pilatusDetector::pilatusTask()
         /* Get the acquisition parameters */
         getIntegerParam(ADTriggerMode, &triggerMode);
         getIntegerParam(ADNumImages, &numImages);
+        getIntegerParam(ADNumExposures, &numExposures);
         
         acquiring = ADStatusAcquire;
         setIntegerParam(ADStatus, acquiring);
@@ -1075,7 +1079,11 @@ void pilatusDetector::pilatusTask()
                 /* We release the mutex when waiting for 7OK because this takes a long time and
                  * we need to allow abort operations to get through */
                 this->unlock();
-                status = readCamserver(acquireTime + readImageFileTimeout);
+                if (numExposures > 1) 
+                    timeout = numExposures * acquirePeriod;
+                else 
+                    timeout = acquireTime;
+                status = readCamserver(timeout + CAMSERVER_ACQUIRE_TIMEOUT);
                 this->lock();
                 /* If there was an error jump to bottom of loop */
                 if (status) {
@@ -1115,7 +1123,9 @@ void pilatusDetector::pilatusTask()
                 /* We release the mutex when calling readImageFile, because this takes a long time and
                  * we need to allow abort operations to get through */
                 this->unlock();
-                status = readImageFile(fullFileName, &startTime, acquireTime + readImageFileTimeout, pImage); 
+                status = readImageFile(fullFileName, &startTime, 
+                                       (numExposures * acquireTime) + readImageFileTimeout, 
+                                       pImage); 
                 this->lock();
                 /* If there was an error jump to bottom of loop */
                 if (status) {
@@ -1178,7 +1188,7 @@ void pilatusDetector::pilatusTask()
             if (arrayCallbacks) 
                 timeout = readImageFileTimeout;
             else 
-                timeout = numImages * acquireTime + readImageFileTimeout;
+                timeout = (numImages * numExposures * acquirePeriod) + CAMSERVER_ACQUIRE_TIMEOUT;
             setStringParam(ADStatusMessage, "Waiting for 7OK response");
             callParamCallbacks();
             /* We release the mutex because we may wait a long time and need to allow abort
@@ -1623,7 +1633,6 @@ pilatusDetector::pilatusDetector(const char *portName, const char *camserverPort
     int status = asynSuccess;
     const char *functionName = "pilatusDetector";
     int dims[2];
-    char *substr = NULL;
 
     /* Create the epicsEvents for signaling to the pilatus task when acquisition starts and stops */
     this->startEventId = epicsEventCreate(epicsEventEmpty);
