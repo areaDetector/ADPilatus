@@ -715,13 +715,9 @@ asynStatus pilatusDetector::setAcquireParams()
     if (status != asynSuccess) triggerMode = TMInternal;
     
      /* When we change modes download all exposure parameters, since some modes
-     * replace values with new parameters */
+      * replace values with new parameters */
     if (triggerMode == TMAlignment) {
         setIntegerParam(ADNumImages, 1);
-    }
-    /* nexpf > 1 is only supported in External Enable mode */  
-    if (triggerMode != TMExternalEnable) {
-        setIntegerParam(ADNumExposures, 1);
     }
     
     status = getIntegerParam(ADNumImages, &ival);
@@ -1079,10 +1075,7 @@ void pilatusDetector::pilatusTask()
                 /* We release the mutex when waiting for 7OK because this takes a long time and
                  * we need to allow abort operations to get through */
                 this->unlock();
-                if (numExposures > 1) 
-                    timeout = numExposures * acquirePeriod;
-                else 
-                    timeout = acquireTime;
+                timeout = ((numExposures-1) * acquirePeriod) + acquireTime;
                 status = readCamserver(timeout + CAMSERVER_ACQUIRE_TIMEOUT);
                 this->lock();
                 /* If there was an error jump to bottom of loop */
