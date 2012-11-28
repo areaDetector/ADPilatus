@@ -207,7 +207,7 @@ protected:
     double demandedThreshold;
 };
 
-#define NUM_PILATUS_PARAMS (&LAST_PILATUS_PARAM - &FIRST_PILATUS_PARAM + 1)
+#define NUM_PILATUS_PARAMS ((int)(&LAST_PILATUS_PARAM - &FIRST_PILATUS_PARAM + 1))
 
 void pilatusDetector::readBadPixelFile(const char *badPixelFile)
 {
@@ -250,7 +250,7 @@ void pilatusDetector::readBadPixelFile(const char *badPixelFile)
 
 void pilatusDetector::readFlatFieldFile(const char *flatFieldFile)
 {
-    int i;
+    size_t i;
     int status;
     int ngood;
     int minFlatField;
@@ -615,7 +615,8 @@ asynStatus pilatusDetector::readTiff(const char *fileName, epicsTimeStamp *pStar
     double deltaTime;
     int status=-1;
     const char *functionName = "readTiff";
-    int size, totalSize;
+    size_t totalSize;
+    int size;
     int numStrips, strip;
     char *buffer;
     TIFF *tiff=NULL;
@@ -646,15 +647,15 @@ asynStatus pilatusDetector::readTiff(const char *fileName, epicsTimeStamp *pStar
         status = TIFFGetField(tiff, TIFFTAG_IMAGEWIDTH, &uval);
         if (uval != (epicsUInt32)pImage->dims[0].size) {
             asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
-                "%s::%s, image width incorrect =%u, should be %d\n",
-                driverName, functionName, uval, pImage->dims[0].size);
+                "%s::%s, image width incorrect =%u, should be %u\n",
+                driverName, functionName, uval, (epicsUInt32)pImage->dims[0].size);
             goto retry;
         }
         status = TIFFGetField(tiff, TIFFTAG_IMAGELENGTH, &uval);
         if (uval != (epicsUInt32)pImage->dims[1].size) {
             asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
-                "%s::%s, image length incorrect =%u, should be %d\n",
-                driverName, functionName, uval, pImage->dims[1].size);
+                "%s::%s, image length incorrect =%u, should be %u\n",
+                driverName, functionName, uval, (epicsUInt32)pImage->dims[1].size);
             goto retry;
         }
         numStrips= TIFFNumberOfStrips(tiff);
@@ -960,7 +961,8 @@ void pilatusDetector::pilatusTask()
     char fullFileName[MAX_FILENAME_LEN];
     char filePath[MAX_FILENAME_LEN];
     char statusMessage[MAX_MESSAGE_SIZE];
-    int dims[2];
+    size_t dims[2];
+    int itemp;
     int arrayCallbacks;
     int flatFieldValid;
     int aborted = 0;
@@ -1107,8 +1109,8 @@ void pilatusDetector::pilatusTask()
                 callParamCallbacks();
 
                 /* Get an image buffer from the pool */
-                getIntegerParam(ADMaxSizeX, &dims[0]);
-                getIntegerParam(ADMaxSizeY, &dims[1]);
+                getIntegerParam(ADMaxSizeX, &itemp); dims[0] = itemp;
+                getIntegerParam(ADMaxSizeY, &itemp); dims[1] = itemp;
                 pImage = this->pNDArrayPool->alloc(2, dims, NDInt32, 0, NULL);
                 epicsSnprintf(statusMessage, sizeof(statusMessage), "Reading image file %s", fullFileName);
                 setStringParam(ADStatusMessage, statusMessage);
@@ -1130,7 +1132,8 @@ void pilatusDetector::pilatusTask()
 
                 getIntegerParam(PilatusFlatFieldValid, &flatFieldValid);
                 if (flatFieldValid) {
-                    epicsInt32 *pData, *pFlat, i;
+                    epicsInt32 *pData, *pFlat;
+                    size_t i;
                     for (i=0, pData = (epicsInt32 *)pImage->pData, pFlat = (epicsInt32 *)this->pFlatField->pData;
                          i<dims[0]*dims[1]; 
                          i++, pData++, pFlat++) {
@@ -1625,7 +1628,7 @@ pilatusDetector::pilatusDetector(const char *portName, const char *camserverPort
 {
     int status = asynSuccess;
     const char *functionName = "pilatusDetector";
-    int dims[2];
+    size_t dims[2];
 
     /* Create the epicsEvents for signaling to the pilatus task when acquisition starts and stops */
     this->startEventId = epicsEventCreate(epicsEventEmpty);
