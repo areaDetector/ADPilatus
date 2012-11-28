@@ -4909,7 +4909,7 @@ int cbf_set_beam_center (cbf_detector detector, double *index1,
 {
   double oindex1, oindex2, ocenter1, ocenter2;
   
-  double nindex1, nindex2, ncenter1, ncenter2;
+  double nindex1, nindex2;
     
   double psize1, psize2;
   
@@ -4979,11 +4979,9 @@ int cbf_set_beam_center (cbf_detector detector, double *index1,
   
   if (center1) {
 
-  	ncenter1 = *center1;
-
   } else {
 
-  	if (index1 && psize1 != 0.) ncenter1 = sign1*(*index1)*psize1;
+  	if (index1 && psize1 != 0.) ;
 
   	else return CBF_ARGUMENT;
   
@@ -4991,11 +4989,9 @@ int cbf_set_beam_center (cbf_detector detector, double *index1,
 
   if (center2) {
 
-  	ncenter2 = *center2;
-
   } else {
 
-  	if (index2 && psize2 != 0.) ncenter2 = sign2*(*index2)*psize2;
+  	if (index2 && psize2 != 0.) ;
 
   	else return CBF_ARGUMENT;
   
@@ -5080,7 +5076,7 @@ int cbf_set_reference_beam_center (cbf_detector detector, double *index1,
 {
   double oindex1, oindex2, ocenter1, ocenter2;
   
-  double nindex1, nindex2, ncenter1, ncenter2;
+  double nindex1, nindex2;
     
   double psize1, psize2;
   
@@ -5150,11 +5146,9 @@ int cbf_set_reference_beam_center (cbf_detector detector, double *index1,
   
   if (center1) {
 
-  	ncenter1 = *center1;
-
   } else {
 
-  	if (index1 && psize1 != 0.) ncenter1 = sign1*(*index1)*psize1;
+  	if (index1 && psize1 != 0.) ;
 
   	else return CBF_ARGUMENT;
   
@@ -5162,11 +5156,9 @@ int cbf_set_reference_beam_center (cbf_detector detector, double *index1,
 
   if (center2) {
 
-  	ncenter2 = *center2;
-
   } else {
 
-  	if (index2 && psize2 != 0.) ncenter2 = sign2*(*index2)*psize2;
+  	if (index2 && psize2 != 0.) ;
 
   	else return CBF_ARGUMENT;
   

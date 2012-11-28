@@ -7017,10 +7017,6 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
 
 	char output[255];
     
-    long ltest;
-
-    double dtest;
-
     char * endptr;
     
     char loval[255], hival[255];
@@ -7254,13 +7250,13 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	        	    || cbf_cistrncmp(dictype,"int",3)
     	        	    || cbf_cistrncmp(dictype,"floa",4)) {
     	        	        	        	    
-    	        	    ltest = strtol(valuestring, &endptr, 10);
+    	        	    strtol(valuestring, &endptr, 10);
 
     	        	    if (*endptr=='\0') { goodmatch = 1; break; }
     	        	    
     	        	    if (*endptr == '(')  {
     	        	    
-    	        	      ltest = strtol(endptr+1, &endptr, 10);
+    	        	      strtol(endptr+1, &endptr, 10);
     	        	      
     	        	      if (*endptr==')') { goodmatch = 1; break; }
     	        	    	
@@ -7270,13 +7266,13 @@ int cbf_validate (cbf_handle handle, cbf_node * node, CBF_NODETYPE type, cbf_nod
     	        	    if ( !cbf_cistrncmp(dictype,"numb",4)
     	        	      || !cbf_cistrncmp(dictype,"floa",4)) {
     	        	      
-    	        	      dtest = strtod(valuestring, &endptr);
+    	        	      strtod(valuestring, &endptr);
     	        	      
     	        	      if (*endptr=='\0') { goodmatch = 1; break; }
     	        	      
       	        	      if (*endptr == '(')  {
     	        	    
-    	        	        ltest = strtol(endptr+1, &endptr, 10);
+    	        	        strtol(endptr+1, &endptr, 10);
     	        	      
     	        	        if (*endptr==')') { goodmatch = 1; break; }
     	        	        
@@ -8173,10 +8169,6 @@ int cbf_mpint_leftshift_acc(unsigned int * acc, size_t acsize, int shift) {
 
   unsigned int extrabits, xextrabits, mask;
 
-  unsigned int sign;
-  
-  sign = 1 << (sizeof(unsigned int)*CHAR_BIT-1);
-  
   if (shift < 0) return cbf_mpint_rightshift_acc(acc, acsize, -shift);
 
   bigshift = 0;

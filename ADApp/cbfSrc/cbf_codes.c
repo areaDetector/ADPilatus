@@ -597,13 +597,11 @@ int cbf_tobase32k(cbf_file *infile, cbf_file *outfile, size_t size)
         size_t sz = 0;		/*number of characters read*/
 	size_t  encchars = 0;	/*number of encoded characters altogether*/
 	int bigEndian = 0;
-	unsigned char tmp[3];
 	int count_w = 0;
 	int rav = 0;
 	unsigned char b;
 	int count_enc=0;
 	int new_l =0;
-	tmp[2] = '\0';
         txt = (unsigned char *) malloc(sizeof(char) *maxlen + 1);
 	txt[maxlen] = '\0'; /*freaky but makes me feel better*/
         pencsize = &encsize;
@@ -1309,7 +1307,6 @@ int cbf_frombase32k(cbf_file *infile, cbf_file *outfile, size_t size, size_t *re
         char *enc = NULL;       /*encoded text */
         char *decoded = NULL;   /*decoded text (should be the same as txt)*/
         size_t sz = 0;
-	int mah =0;		/*the number of bytes that should be cut from the end*/
 	int clear;
 	char b ='\0';
 	int a = 0;
@@ -1470,7 +1467,6 @@ int cbf_frombase32k(cbf_file *infile, cbf_file *outfile, size_t size, size_t *re
 				
 					if(enc[16] == '\x00' && enc[17] == '\x3D')
 					{
-						mah = 1;
 						cbf_decode32k_bit_op(enc, decoded, (sz-2));
 						count_w=0;
 						 while(count_w<(sz-4))
@@ -1906,7 +1902,6 @@ int cbf_frombase32k(cbf_file *infile, cbf_file *outfile, size_t size, size_t *re
 				
 					if(enc[16] == '\x00' && enc[17] == '\x3D')
 					{
-						mah = 1;
 						cbf_decode32k_bit_op(enc, decoded, (sz-2));
 						count_w=0;
 						 while(count_w<(sz-4))

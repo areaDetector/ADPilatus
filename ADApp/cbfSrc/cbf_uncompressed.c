@@ -258,8 +258,12 @@ extern "C" {
 #include <string.h>
 #include <limits.h>
 #include <ctype.h>
+#ifndef __USE_XOPEN
 #define __USE_XOPEN
+#endif
+#ifndef _XOPEN_SOURCE
 #define _XOPEN_SOURCE
+#endif
 #include <unistd.h>
 
 #include "cbf_ad.h"

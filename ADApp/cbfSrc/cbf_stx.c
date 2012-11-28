@@ -408,13 +408,8 @@ int cbf_lex_wrapper (void *val, void *vcontext)
   
   cbf_handle cbfhandle;
   
-  cbf_file *cbffile;
-  
-
   do {
   
-    cbffile = (cbf_file*)((void **) vcontext) [0];
-
     cbfhandle = (cbf_handle)((void **) vcontext) [2]; 
 
     token = cbf_lex (cbfhandle, (YYSTYPE *)val);

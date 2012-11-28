@@ -1437,13 +1437,13 @@ int cbf_compress_canonical (void         *source,
 {
   int code, minelement, maxelement;
 
-  unsigned int count, element, lastelement, bits, unsign, sign, limit, endcode;
+  unsigned int count, element, lastelement, bits, unsign, sign, limit;
 
   unsigned long bitcount, expected_bitcount;
 
   unsigned char *unsigned_char_data;
 
-  cbf_compress_node *node, *start;
+  cbf_compress_node *start;
 
   cbf_compress_data *data;
 
@@ -1531,9 +1531,6 @@ int cbf_compress_canonical (void         *source,
 
   unsigned_char_data = (unsigned char *) source;
 
-  node = data->node;
-
-
     /* Maximum limit (unsigned) is 64 bits */
 
   if (elsize * CHAR_BIT > 64)
@@ -1572,8 +1569,6 @@ int cbf_compress_canonical (void         *source,
     /* Start from 0 */
 
   lastelement = unsign;
-
-  endcode = 1 << data->bits;
 
   for (count = 0; count < nelem; count++)
   {

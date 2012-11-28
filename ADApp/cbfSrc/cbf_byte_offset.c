@@ -281,7 +281,7 @@ int cbf_compress_byte_offset (void         *source,
                               size_t        dimslow,
                               size_t        padding)
 {
-  unsigned int count, borrow, element[4], prevelement[4], 
+  unsigned int count, element[4], prevelement[4], 
   
   unsign, sign, limit, bits;
 
@@ -888,9 +888,7 @@ int cbf_compress_byte_offset (void         *source,
 
     
       /* Compute the delta */
-      
-    borrow = 0;
-    
+          
     kint = 0;
     
     if (numints > 1) {
@@ -1038,7 +1036,7 @@ int cbf_decompress_byte_offset (void         *destination,
 
   unsigned char *unsigned_char_data;
 
-  int errorcode, overflow, numints, iint, carry;
+  int overflow, numints, iint;
   
   int delta[4];
 
@@ -1047,10 +1045,6 @@ int cbf_decompress_byte_offset (void         *destination,
   char * rformat;
   
   size_t numread;
-
-    /* prepare the errorcode */
-
-  errorcode = 0;
 
     /* Is the element size valid? */
 
@@ -1161,9 +1155,7 @@ int cbf_decompress_byte_offset (void         *destination,
       delta[iint] = 0;
     	
     }
-    
-    carry = 0;
-    
+        
     cbf_failnez(cbf_get_bits(file,delta,8))
         
     if ((delta[0]&0xFF) == 0x80) {
