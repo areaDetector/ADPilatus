@@ -8115,7 +8115,7 @@ int cbf_mpint_rightshift_acc(unsigned int * acc, size_t acsize, int shift) {
 
     extrabits = 0;
 
-    if (acc[acsize-1]<0) extrabits = ~0;
+    /* if (acc[acsize-1]<0) extrabits = ~0; */
 
     bigshift = shift/(sizeof(unsigned int)*CHAR_BIT);
 

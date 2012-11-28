@@ -625,7 +625,7 @@ extern "C" {
         
         if ( !handle ) return CBF_ARGUMENT;
         
-        if ( option < 0 || option >=  handle->optstructs_size) return CBF_ARGUMENT;
+        if (option >=  handle->optstructs_size) return CBF_ARGUMENT;
         
         handle->optind = option;
         

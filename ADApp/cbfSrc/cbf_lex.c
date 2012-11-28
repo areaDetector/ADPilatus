@@ -1119,6 +1119,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                             if (depth==1 && cqueue[0]==cbf_token_term(tokentype[0])) {
                                 
                                 int ttype=tokentype[0];
+                                int ii;
                                 
                                 cbf_free((void **)vtokentype, NULL);
                                 cbf_free((void **)vstate, NULL);
@@ -1249,6 +1250,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                                 if (depth==0 && cqueue[0]==cbf_token_term(tokentype[0])) {
                                     
                                     int ttype=tokentype[0];
+                                    int ii;
                                     
                                     cbf_free((void **)vtokentype, NULL);
                                     cbf_free((void **)vstate, NULL);
@@ -1309,6 +1311,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                                     if (depth==1 && cqueue[0]==cbf_token_term(tokentype[0])) {
                                         
                                         int ttype=tokentype[0];
+                                        int ii;
                                         
                                         cbf_free((void **)vtokentype, NULL);
                                         cbf_free((void **)vstate, NULL);
@@ -1506,6 +1509,7 @@ int cbf_lex (cbf_handle handle, YYSTYPE *val )
                         if (depth==0) {
                             
                             int ttype=tokentype[0];
+                            int ii;
                             
                             cbf_free((void **)vtokentype, NULL);
                             cbf_free((void **)vstate, NULL);
