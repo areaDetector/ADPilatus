@@ -387,7 +387,9 @@ asynStatus pilatusDetector::waitForFileToExist(const char *fileName, epicsTimeSt
             fd = -1;
         }
         /* Sleep, but check for stop event, which can be used to abort a long acquisition */
+        unlock();
         status = epicsEventWaitWithTimeout(this->stopEventId, FILE_READ_DELAY);
+        lock();
         if (status == epicsEventWaitOK) {
             setStringParam(ADStatusMessage, "Acquisition aborted");
             setIntegerParam(ADStatus, ADStatusAborted);
@@ -590,7 +592,9 @@ asynStatus pilatusDetector::readCbf(const char *fileName, epicsTimeStamp *pStart
         }
         /* Sleep, but check for stop event, which can be used to abort a long
          * acquisition */
+        unlock();
         status = epicsEventWaitWithTimeout(this->stopEventId, FILE_READ_DELAY);
+        lock();
         if (status == epicsEventWaitOK) {
             setIntegerParam(ADStatus, ADStatusAborted);
             return(asynError);
@@ -688,7 +692,9 @@ asynStatus pilatusDetector::readTiff(const char *fileName, epicsTimeStamp *pStar
         if (tiff != NULL) TIFFClose(tiff);
         tiff = NULL;
         /* Sleep, but check for stop event, which can be used to abort a long acquisition */
+        unlock();
         status = epicsEventWaitWithTimeout(this->stopEventId, FILE_READ_DELAY);
+        lock();
         if (status == epicsEventWaitOK) {
             setIntegerParam(ADStatus, ADStatusAborted);
             return(asynError);
@@ -876,11 +882,13 @@ asynStatus pilatusDetector::readCamserver(double timeout)
     deltaTime = 0;
     epicsTimeGetCurrent(&tStart);
     while (deltaTime <= timeout) {
+        unlock();
         status = pasynOctetSyncIO->read(pasynUser, this->fromCamserver,
                                         sizeof(this->fromCamserver), ASYN_POLL_TIME,
                                         &nread, &eomReason);
         /* Check for an abort event sent during a read. Otherwise we can miss it and mess up the next acqusition.*/
         eventStatus = epicsEventWaitWithTimeout(this->stopEventId, 0.001);
+        lock();
         if (eventStatus == epicsEventWaitOK) {
             setStringParam(ADStatusMessage, "Acquisition aborted");
             setIntegerParam(ADStatus, ADStatusAborted);
@@ -889,7 +897,9 @@ asynStatus pilatusDetector::readCamserver(double timeout)
         if (status != asynTimeout) break;
 
         /* Sleep, but check for stop event, which can be used to abort a long acquisition */
+        unlock();
         eventStatus = epicsEventWaitWithTimeout(this->stopEventId, ASYN_POLL_TIME);
+        lock();
         if (eventStatus == epicsEventWaitOK) {
             setStringParam(ADStatusMessage, "Acquisition aborted");
             setIntegerParam(ADStatus, ADStatusAborted);
@@ -1074,12 +1084,8 @@ void pilatusDetector::pilatusTask()
                  * recent but stale file. */
                 setStringParam(ADStatusMessage, "Waiting for 7OK response");
                 callParamCallbacks();
-                /* We release the mutex when waiting for 7OK because this takes a long time and
-                 * we need to allow abort operations to get through */
-                this->unlock();
                 timeout = ((numExposures-1) * acquirePeriod) + acquireTime;
                 status = readCamserver(timeout + CAMSERVER_ACQUIRE_TIMEOUT);
-                this->lock();
                 /* If there was an error jump to bottom of loop */
                 if (status) {
                     acquire = 0;
@@ -1117,11 +1123,9 @@ void pilatusDetector::pilatusTask()
                 callParamCallbacks();
                 /* We release the mutex when calling readImageFile, because this takes a long time and
                  * we need to allow abort operations to get through */
-                this->unlock();
                 status = readImageFile(fullFileName, &startTime, 
                                        (numExposures * acquireTime) + readImageFileTimeout, 
                                        pImage); 
-                this->lock();
                 /* If there was an error jump to bottom of loop */
                 if (status) {
                     acquire = 0;
@@ -1187,11 +1191,7 @@ void pilatusDetector::pilatusTask()
                 timeout = (numImages * numExposures * acquirePeriod) + CAMSERVER_ACQUIRE_TIMEOUT;
             setStringParam(ADStatusMessage, "Waiting for 7OK response");
             callParamCallbacks();
-            /* We release the mutex because we may wait a long time and need to allow abort
-             * operations to get through */
-            this->unlock();
             status = readCamserver(timeout);
-            this->lock();
             /* In the case of a timeout, camserver could still be acquiring. So we need to send a stop.*/
             if (status == asynTimeout) {
                 setStringParam(ADStatusMessage, "Timeout waiting for camserver response");
@@ -1303,16 +1303,12 @@ void pilatusDetector::pilatusStatus()
 
       } else {
         setIntegerParam(ADStatus, ADStatusError);
-      }
-      
+      }      
       callParamCallbacks();
-      unlock();
-    } else {
-      /* Unlock right away and try again next time*/
-      unlock();
     }
     
     /* This thread does not need to run often.*/
+    unlock();
     epicsThreadSleep(60);
     
   }
