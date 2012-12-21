@@ -550,17 +550,17 @@ asynStatus pilatusDetector::readCbf(const char *fileName, epicsTimeStamp *pStart
             &cbfDimFast, &cbfDimMid, &cbfDimSlow, &cbfPadding);
         if (status != 0) goto retry;
 
-        if (cbfDimFast != (size_t)pImage->dims[0].size) {
+        if (cbfDimFast != pImage->dims[0].size) {
             asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
-                "%s::%s, image width incorrect =%zd, should be %d\n",
-                driverName, functionName, cbfDimFast, pImage->dims[0].size);
+                "%s::%s, image width incorrect =%lu, should be %lu\n",
+                driverName, functionName, (unsigned long)cbfDimFast, (unsigned long)pImage->dims[0].size);
             cbf_free_handle(cbf);
             return(asynError);
         }
-        if (cbfDimMid != (size_t)pImage->dims[1].size) {
+        if (cbfDimMid != pImage->dims[1].size) {
             asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
-                "%s::%s, image height incorrect =%zd, should be %d\n",
-                driverName, functionName, cbfDimMid, pImage->dims[1].size);
+                "%s::%s, image height incorrect =%lu, should be %lu\n",
+                driverName, functionName, (unsigned long)cbfDimMid, (unsigned long)pImage->dims[1].size);
             cbf_free_handle(cbf);
             return(asynError);
         }
@@ -681,8 +681,8 @@ asynStatus pilatusDetector::readTiff(const char *fileName, epicsTimeStamp *pStar
         if (totalSize != pImage->dataSize) {
             status = asynError;
             asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
-                "%s::%s, file size incorrect =%d, should be %d\n",
-                driverName, functionName, totalSize, pImage->dataSize);
+                "%s::%s, file size incorrect =%lu, should be %lu\n",
+                driverName, functionName, (unsigned long)totalSize, (unsigned long)pImage->dataSize);
             goto retry;
         }
         /* Sucesss! */
@@ -913,8 +913,8 @@ asynStatus pilatusDetector::readCamserver(double timeout)
    if ((status == asynTimeout) && (timeout == 0)) return(asynSuccess);
    if (status != asynSuccess)
         asynPrint(pasynUser, ASYN_TRACE_ERROR,
-                    "%s:%s, timeout=%f, status=%d received %d bytes\n%s\n",
-                    driverName, functionName, timeout, status, nread, this->fromCamserver);
+                    "%s:%s, timeout=%f, status=%d received %lu bytes\n%s\n",
+                    driverName, functionName, timeout, status, (unsigned long)nread, this->fromCamserver);
    else {
         /* Look for the string OK in the response */
         if (!strstr(this->fromCamserver, "OK")) {
