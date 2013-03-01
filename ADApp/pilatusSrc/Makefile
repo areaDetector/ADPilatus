@@ -27,6 +27,7 @@ PROD_LIBS += pilatusDetector
 PROD_LIBS += cbfad
 
 include $(TOP)/ADApp/commonDriverMakefile
+$(PROD_NAME)_DBD += drvAsynIPPort.dbd
 
 #=============================
 
