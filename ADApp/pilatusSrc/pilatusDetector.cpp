@@ -110,6 +110,7 @@ static const char *driverName = "pilatusDetector";
 #define PilatusThHumid2String       "TH_HUMID_2"
 #define PilatusTvxVersionString     "TVXVERSION"
 #define PilatusCbfTemplateFileString "CBFTEMPLATEFILE"
+#define PilatusHeaderStringString   "HEADERSTRING"
 
 
 /** Driver for Dectris Pilatus pixel array detectors using their camserver server over TCP/IP socket */
@@ -172,7 +173,8 @@ protected:
     int PilatusThHumid2;
     int PilatusTvxVersion;
     int PilatusCbfTemplateFile;
-    #define LAST_PILATUS_PARAM PilatusCbfTemplateFile
+    int PilatusHeaderString;
+    #define LAST_PILATUS_PARAM PilatusHeaderString
 
  private:                                       
     /* These are the methods that are new to this class */
@@ -1540,6 +1542,9 @@ asynStatus pilatusDetector::writeOctet(asynUser *pasynUser, const char *value,
         epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "mxsettings cbf_template_file %s",
             strlen(value) == 0 ? "0" : value);
         writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
+    } else if (function == PilatusHeaderString) {
+        epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "HeaderString \"%s\"", value);
+        writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
     } else {
         /* If this parameter belongs to a base class call its method */
         if (function < FIRST_PILATUS_PARAM) status = ADDriver::writeOctet(pasynUser, value, nChars, nActual);
@@ -1689,6 +1694,7 @@ pilatusDetector::pilatusDetector(const char *portName, const char *camserverPort
     createParam(PilatusThHumid2String,       asynParamFloat64, &PilatusThHumid2);
     createParam(PilatusTvxVersionString,     asynParamOctet,   &PilatusTvxVersion);
     createParam(PilatusCbfTemplateFileString,asynParamOctet,   &PilatusCbfTemplateFile);
+    createParam(PilatusHeaderStringString,   asynParamOctet,   &PilatusHeaderString);
 
     /* Set some default values for parameters */
     status =  setStringParam (ADManufacturer, "Dectris");
