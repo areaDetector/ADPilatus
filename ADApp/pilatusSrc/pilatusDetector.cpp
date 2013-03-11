@@ -41,6 +41,7 @@
 /** Messages to/from camserver */
 #define MAX_MESSAGE_SIZE 256 
 #define MAX_FILENAME_LEN 256
+#define MAX_HEADER_STRING_LEN 68
 #define MAX_BAD_PIXELS 100
 /** Time to poll when reading from camserver */
 #define ASYN_POLL_TIME .01 
@@ -970,6 +971,7 @@ void pilatusDetector::pilatusTask()
     int triggerMode;
     epicsTimeStamp startTime;
     const char *functionName = "pilatusTask";
+    char headerString[MAX_HEADER_STRING_LEN];
     char fullFileName[MAX_FILENAME_LEN];
     char filePath[MAX_FILENAME_LEN];
     char statusMessage[MAX_MESSAGE_SIZE];
@@ -1024,6 +1026,11 @@ void pilatusDetector::pilatusTask()
         /* Reset the MX settings start angle */
         getDoubleParam(PilatusStartAngle, &startAngle);
         epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "mxsettings Start_angle %f", startAngle);
+        writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
+
+        /* Send the header string.  This needs to be sent for each exposure command. */
+        getStringParam(PilatusHeaderString, MAX_HEADER_STRING_LEN, headerString);
+        epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "HeaderString \"%s\"", headerString);
         writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
 
         /* Create the full filename */
@@ -1542,9 +1549,6 @@ asynStatus pilatusDetector::writeOctet(asynUser *pasynUser, const char *value,
         epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "mxsettings cbf_template_file %s",
             strlen(value) == 0 ? "0" : value);
         writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
-    } else if (function == PilatusHeaderString) {
-        epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "HeaderString \"%s\"", value);
-        writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
     } else {
         /* If this parameter belongs to a base class call its method */
         if (function < FIRST_PILATUS_PARAM) status = ADDriver::writeOctet(pasynUser, value, nChars, nActual);
@@ -1724,6 +1728,7 @@ pilatusDetector::pilatusDetector(const char *portName, const char *camserverPort
     setDoubleParam(PilatusThHumid1, 0);
     setDoubleParam(PilatusThHumid2, 0);
     setStringParam(PilatusTvxVersion, "Unknown");
+    setStringParam(PilatusHeaderString, "");
 
     if (status) {
         printf("%s: unable to set camera parameters\n", functionName);
