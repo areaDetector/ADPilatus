@@ -816,7 +816,7 @@ asynStatus pilatusDetector::setThreshold()
     setStringParam(ADStatusMessage, "Setting threshold");
     callParamCallbacks();
     
-    status=writeReadCamserver(90.0);  /* This command can take 78 seconds on a 6M */
+    status=writeReadCamserver(110.0);  /* This command can take 96 seconds on a 6M */
     if (status)
         setIntegerParam(ADStatus, ADStatusError);
     else
