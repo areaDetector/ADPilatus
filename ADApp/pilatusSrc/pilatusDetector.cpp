@@ -130,7 +130,6 @@ public:
     void report(FILE *fp, int details);
     /* These should be private but are called from C so must be public */
     void pilatusTask(); 
-    void pilatusStatus();
     
 protected:
     int PilatusDelayTime;
@@ -192,6 +191,7 @@ protected:
     asynStatus writeReadCamserver(double timeout);
     asynStatus setAcquireParams();
     asynStatus setThreshold();
+    asynStatus pilatusStatus();
     void readBadPixelFile(const char *badPixelFile);
     void readFlatFieldFile(const char *flatFieldFile);
    
@@ -208,6 +208,7 @@ protected:
     badPixel badPixelMap[MAX_BAD_PIXELS];
     double averageFlatField;
     double demandedThreshold;
+    int firstStatusCall;
 };
 
 #define NUM_PILATUS_PARAMS ((int)(&LAST_PILATUS_PARAM - &FIRST_PILATUS_PARAM + 1))
@@ -1235,94 +1236,69 @@ void pilatusDetector::pilatusTask()
     }
 }
 
-static void pilatusStatusC(void *drvPvt)
+/** This function is called periodically read the detector status (temperature, humidity, etc.)
+    It should not be called if we are acquiring data, to avoid polling camserver when taking data.*/
+asynStatus pilatusDetector::pilatusStatus()
 {
-    pilatusDetector *pPvt = (pilatusDetector *)drvPvt;
-    
-    pPvt->pilatusStatus();
-}
-
-/** This thread periodically read the detector status (temperature, humidity, etc.)
-    It does not run if we are acquiring data, to avoid polling camserver when taking data.*/
-void pilatusDetector::pilatusStatus()
-{
-  int status = asynSuccess;
-  int acquire = 0;
+  asynStatus status = asynSuccess;
   float temp = 0.0;
   float humid = 0.0;
   char *substr = NULL;
   char *substrtok = NULL;
-  int firstLoop = 1;
 
-  /* To avoid problems reading at startup (eg. when changing threshold), wait first time.*/
-  epicsThreadSleep(10);
-
-  while(1) {
-    lock();
-    /* Is acquisition active? */
-    getIntegerParam(ADAcquire, &acquire);
-    if (!acquire) {
-
-      /* Read the TVX Version once.*/
-      if (firstLoop) {
-        epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "version");
-        status=writeReadCamserver(1.0);
-        if (!status) {
-          if ((substr = strstr(this->fromCamserver, "tvx")) != NULL) {
-            setStringParam(PilatusTvxVersion, substr);
-          }
-          setIntegerParam(ADStatus, ADStatusIdle);
-        } else {
-          setIntegerParam(ADStatus, ADStatusError);
-        }
-        firstLoop = 0;
+  /* Read the TVX Version once.*/
+  if (firstStatusCall) {
+    epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "version");
+    status=writeReadCamserver(1.0);
+    if (!status) {
+      if ((substr = strstr(this->fromCamserver, "tvx")) != NULL) {
+        setStringParam(PilatusTvxVersion, substr);
       }
-
-      /* Read temp and humidity.*/
-      epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "Th");
-      status=writeReadCamserver(1.0); 
-      
-      /* Response should contain: 
-         Channel 0: Temperature = 31.4C, Rel. Humidity = 22.1%;\n
-         Channel 1: Temperature = 25.8C, Rel. Humidity = 33.5%;\n
-         Channel 2: Temperature = 28.6C, Rel. Humidity = 2.0%
-         However, not every detector has all 3 channels.*/
-      
-      if (!status) {
-
-        if ((substr = strstr(strtok(this->fromCamserver, "%"), "Channel 0")) != NULL) {
-          sscanf(substr, "Channel 0: Temperature = %fC, Rel. Humidity = %f", &temp, &humid);
-          setDoubleParam(PilatusThTemp0, temp);
-          setDoubleParam(PilatusThHumid0, humid);
-          setDoubleParam(ADTemperature, temp);
-        }
-        if ((substrtok = strtok(NULL, "%")) != NULL) {
-          if ((substr = strstr(substrtok, "Channel 1")) != NULL) {
-            sscanf(substr, "Channel 1: Temperature = %fC, Rel. Humidity = %f", &temp, &humid);
-            setDoubleParam(PilatusThTemp1, temp);
-            setDoubleParam(PilatusThHumid1, humid);
-          }
-        }
-        if ((substrtok = strtok(NULL, "%")) != NULL) {
-          if ((substr = strstr(substrtok, "Channel 2")) != NULL) {
-            sscanf(substr, "Channel 2: Temperature = %fC, Rel. Humidity = %f", &temp, &humid);
-            setDoubleParam(PilatusThTemp2, temp);
-            setDoubleParam(PilatusThHumid2, humid);
-          }
-        }
-
-      } else {
-        setIntegerParam(ADStatus, ADStatusError);
-      }      
-      callParamCallbacks();
+      setIntegerParam(ADStatus, ADStatusIdle);
+    } else {
+      setIntegerParam(ADStatus, ADStatusError);
     }
-    
-    /* This thread does not need to run often.*/
-    unlock();
-    epicsThreadSleep(60);
-    
+    firstStatusCall = 0;
   }
-  
+
+  /* Read temp and humidity.*/
+  epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "Th");
+  status=writeReadCamserver(1.0); 
+
+  /* Response should contain: 
+     Channel 0: Temperature = 31.4C, Rel. Humidity = 22.1%;\n
+     Channel 1: Temperature = 25.8C, Rel. Humidity = 33.5%;\n
+     Channel 2: Temperature = 28.6C, Rel. Humidity = 2.0%
+     However, not every detector has all 3 channels.*/
+
+  if (!status) {
+
+    if ((substr = strstr(strtok(this->fromCamserver, "%"), "Channel 0")) != NULL) {
+      sscanf(substr, "Channel 0: Temperature = %fC, Rel. Humidity = %f", &temp, &humid);
+      setDoubleParam(PilatusThTemp0, temp);
+      setDoubleParam(PilatusThHumid0, humid);
+      setDoubleParam(ADTemperature, temp);
+    }
+    if ((substrtok = strtok(NULL, "%")) != NULL) {
+      if ((substr = strstr(substrtok, "Channel 1")) != NULL) {
+        sscanf(substr, "Channel 1: Temperature = %fC, Rel. Humidity = %f", &temp, &humid);
+        setDoubleParam(PilatusThTemp1, temp);
+        setDoubleParam(PilatusThHumid1, humid);
+      }
+    }
+    if ((substrtok = strtok(NULL, "%")) != NULL) {
+      if ((substr = strstr(substrtok, "Channel 2")) != NULL) {
+        sscanf(substr, "Channel 2: Temperature = %fC, Rel. Humidity = %f", &temp, &humid);
+        setDoubleParam(PilatusThTemp2, temp);
+        setDoubleParam(PilatusThHumid2, humid);
+      }
+    }
+
+  } else {
+    setIntegerParam(ADStatus, ADStatusError);
+  }      
+  callParamCallbacks();
+  return status;
 }
 
 
@@ -1381,6 +1357,10 @@ asynStatus pilatusDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
     } else if (function == PilatusNumOscill) {
         epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "mxsettings N_oscillations %d", value);
         writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
+    } else if (function == ADReadStatus) {
+        if (adstatus != ADStatusAcquire) {
+          status = pilatusStatus();
+        }
     } else { 
         /* If this parameter belongs to a base class call its method */
         if (function < FIRST_PILATUS_PARAM) status = ADDriver::writeInt32(pasynUser, value);
@@ -1629,7 +1609,7 @@ pilatusDetector::pilatusDetector(const char *portName, const char *camserverPort
                0, 0,             /* No interfaces beyond those set in ADDriver.cpp */
                ASYN_CANBLOCK, 1, /* ASYN_CANBLOCK=1, ASYN_MULTIDEVICE=0, autoConnect=1 */
                priority, stackSize),
-      imagesRemaining(0)
+      imagesRemaining(0), firstStatusCall(1)
 
 {
     int status = asynSuccess;
@@ -1747,19 +1727,6 @@ pilatusDetector::pilatusDetector(const char *portName, const char *camserverPort
             driverName, functionName);
         return;
     }
-
-    /* Create the thread that monitors detector status (temperature, humidity, etc). */
-    status = (epicsThreadCreate("PilatusStatusTask",
-                                epicsThreadPriorityMedium,
-                                epicsThreadGetStackSize(epicsThreadStackMedium),
-                                (EPICSTHREADFUNC)pilatusStatusC,
-                                this) == NULL);
-    if (status) {
-        printf("%s:%s epicsThreadCreate failure for status task\n", 
-            driverName, functionName);
-        return;
-    }
-
 
 }
 
