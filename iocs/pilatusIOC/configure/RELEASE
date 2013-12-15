@@ -7,4 +7,3 @@ include $(TOP)/../../../RELEASE_PATHS.local
 include $(TOP)/../../../RELEASE_PRODS.local
 
 ADPILATUS=$(AREA_DETECTOR)/ADPilatus
-ADPILATUSIOC=$(ADPILATUS)/iocs/pilatusIOC
