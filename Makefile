@@ -3,7 +3,7 @@ TOP = .
 include $(TOP)/configure/CONFIG
 DIRS := $(DIRS) configure
 DIRS := $(DIRS) pilatusApp
-ifeq ($(BUILD_APPS), YES)
+ifeq ($(BUILD_IOCS), YES)
 DIRS := $(DIRS) $(filter-out $(DIRS), $(wildcard iocs))
 iocs_DEPEND_DIRS += pilatusApp
 endif
