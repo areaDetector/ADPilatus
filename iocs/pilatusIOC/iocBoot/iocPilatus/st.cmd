@@ -18,7 +18,7 @@ drvAsynIPPortConfigure("camserver","gse-pilatus1:41234")
 asynOctetSetInputEos("camserver", 0, "\030")
 asynOctetSetOutputEos("camserver", 0, "\n")
 
-pilatusDetectorConfig("$(PORT)", "camserver", $(XSIZE), $(YSIZE), 50, 200000000)
+pilatusDetectorConfig("$(PORT)", "camserver", $(XSIZE), $(YSIZE), 0, 0)
 dbLoadRecords("$(ADCORE)/db/ADBase.template", "P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")
 dbLoadRecords("$(ADCORE)/db/NDFile.template", "P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")
 dbLoadRecords("$(ADPILATUS)/db/pilatus.template","P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1,CAMSERVER_PORT=camserver")
@@ -39,4 +39,4 @@ set_requestfile_path("$(ADPILATUS)/prosilicaApp/Db")
 iocInit()
 
 # save things every thirty seconds
-create_monitor_set("auto_settings.req", 30,"P=$(PREFIX),D=cam1:")
+create_monitor_set("auto_settings.req", 30,"P=$(PREFIX)")
