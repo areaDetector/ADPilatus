@@ -10,4 +10,4 @@ This is the
 [documentation](http://cars.uchicago.edu/software/epics/pilatusDoc.html).
 
 This is the 
-[release notes and links to source and binary releases](RELEASE.MD).
+[release notes and links to source and binary releases](https://github.com/areaDetector/ADPilatus/RELEASE.MD).
