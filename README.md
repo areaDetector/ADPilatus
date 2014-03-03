@@ -6,8 +6,6 @@ An
 driver for the Pilatus pixel array detectors from 
 [Dectris](http://www.dectris.com).
 
-This is the
-[documentation](http://cars.uchicago.edu/software/epics/pilatusDoc.html).
-
-This is the 
-[release notes and links to source and binary releases](RELEASE.md).
+Additional information:
+* [Documentation](http://cars.uchicago.edu/software/epics/pilatusDoc.html).
+* [Release notes and links to source and binary releases](RELEASE.md).
