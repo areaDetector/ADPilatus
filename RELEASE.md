@@ -32,8 +32,12 @@ R2-0
 * Changed the code that reads the temperature and humidiy from running in a separate thread in the driver
   to being called via the standard ReadStatus record from ADBase.template.
 
-
 R1-9-1 and earlier
 ------------------
 Release notes are part of the
 [areaDetector Release Notes](http://cars.uchicago.edu/software/epics/areaDetectorReleaseNotes.html).
+
+
+Future Releases
+===============
+* Support SetEnergy camserver command?
