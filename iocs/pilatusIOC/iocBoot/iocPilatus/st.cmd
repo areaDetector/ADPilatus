@@ -30,7 +30,7 @@ dbLoadRecords("$(ADCORE)/db/NDStdArrays.template", "P=$(PREFIX),R=image1:,PORT=I
 
 # Load all other plugins using commonPlugins.cmd
 < $(ADCORE)/iocBoot/commonPlugins.cmd
-set_requestfile_path("$(ADPILATUS)/prosilicaApp/Db")
+set_requestfile_path("$(ADPILATUS)/pilatusApp/Db")
 
 #asynSetTraceMask("$(PORT)",0,255)
 #asynSetTraceMask("$(PORT)",0,3)
