@@ -23,7 +23,12 @@ files respectively, in the configure/ directory of the appropriate release of th
 Release Notes
 =============
 
-R2-0
+R2-1 (16-April-2015)
+----
+* Changes for compatibility with ADCore R2-2.
+
+
+R2-0 (4-April-2014)
 ----
 * Moved the repository to [Github](https://github.com/areaDetector/ADPilatus).
 * Re-organized the directory structure to separate the driver library from the example IOC application.
