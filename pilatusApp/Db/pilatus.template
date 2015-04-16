@@ -2,6 +2,9 @@
 # Mark Rivers
 # July 25, 2008
 
+include "ADBase.template"
+include "NDFile.template"
+
 # We redefine the states for the TriggerMode records defined in ADBase.template
 record(mbbo,"$(P)$(R)TriggerMode") {
     field(DESC,"Acquire mode")
