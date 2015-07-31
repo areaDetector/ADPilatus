@@ -752,7 +752,7 @@ asynStatus pilatusDetector::setAcquireParams()
         dval = 1.;
         setDoubleParam(ADAcquireTime, dval);
     }
-    epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "exptime %f", dval);
+    epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "exptime %11.8f", dval);
     writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
 
     status = getDoubleParam(ADAcquirePeriod, &dval);
@@ -760,7 +760,7 @@ asynStatus pilatusDetector::setAcquireParams()
         dval = 2.;
         setDoubleParam(ADAcquirePeriod, dval);
     }
-    epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "expperiod %f", dval);
+    epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "expperiod %11.8f", dval);
     writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
 
     status = getDoubleParam(PilatusDelayTime, &dval);
