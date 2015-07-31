@@ -420,6 +420,16 @@ record(ao, "$(P)$(R)Phi")
     field(EGU,  "deg")
 }
 
+record(ao, "$(P)$(R)PhiIncr")
+{
+    field(PINI, "YES")
+    field(DTYP, "asynFloat64")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHI_INCR")
+    field(PREC, "4")
+    field(VAL,  "0.1")
+    field(EGU,  "deg")
+}
+
 record(ao, "$(P)$(R)Chi")
 {
     field(PINI, "YES")
@@ -427,6 +437,36 @@ record(ao, "$(P)$(R)Chi")
     field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))CHI")
     field(PREC, "4")
     field(VAL,  "0")
+    field(EGU,  "deg")
+}
+
+record(ao, "$(P)$(R)ChiIncr")
+{
+    field(PINI, "YES")
+    field(DTYP, "asynFloat64")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))CHI_INCR")
+    field(PREC, "4")
+    field(VAL,  "0.1")
+    field(EGU,  "deg")
+}
+
+record(ao, "$(P)$(R)Omega")
+{
+    field(PINI, "YES")
+    field(DTYP, "asynFloat64")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))OMEGA")
+    field(PREC, "4")
+    field(VAL,  "0")
+    field(EGU,  "deg")
+}
+
+record(ao, "$(P)$(R)OmegaIncr")
+{
+    field(PINI, "YES")
+    field(DTYP, "asynFloat64")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))OMEGA_INCR")
+    field(PREC, "4")
+    field(VAL,  "0.1")
     field(EGU,  "deg")
 }
 

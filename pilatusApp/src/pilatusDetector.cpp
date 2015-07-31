@@ -99,7 +99,11 @@ static const char *driverName = "pilatusDetector";
 #define PilatusAlphaString          "ALPHA"
 #define PilatusKappaString          "KAPPA"
 #define PilatusPhiString            "PHI"
+#define PilatusPhiIncrString        "PHI_INCR"
 #define PilatusChiString            "CHI"
+#define PilatusChiIncrString        "CHI_INCR"
+#define PilatusOmegaString          "OMEGA"
+#define PilatusOmegaIncrString      "OMEGA_INCR"
 #define PilatusOscillAxisString     "OSCILL_AXIS"
 #define PilatusNumOscillString      "NUM_OSCILL"
 #define PilatusPixelCutOffString    "PIXEL_CUTOFF"
@@ -161,7 +165,11 @@ protected:
     int PilatusAlpha;
     int PilatusKappa;
     int PilatusPhi;
+    int PilatusPhiIncr;
     int PilatusChi;
+    int PilatusChiIncr;
+    int PilatusOmega;
+    int PilatusOmegaIncr;
     int PilatusOscillAxis;
     int PilatusNumOscill;
     int PilatusPixelCutOff;  
@@ -1472,8 +1480,20 @@ asynStatus pilatusDetector::writeFloat64(asynUser *pasynUser, epicsFloat64 value
     } else if (function == PilatusPhi) {
         epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "mxsettings Phi %f", value);
         writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
+    } else if (function == PilatusPhiIncr) {
+        epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "mxsettings Phi_increment %f", value);
+        writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
     } else if (function == PilatusChi) {
         epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "mxsettings Chi %f", value);
+        writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
+    } else if (function == PilatusChiIncr) {
+        epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "mxsettings Chi_increment %f", value);
+        writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
+    } else if (function == PilatusOmega) {
+        epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "mxsettings Omega %f", value);
+        writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
+    } else if (function == PilatusOmegaIncr) {
+        epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "mxsettings Omega_increment %f", value);
         writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
     } else {
         /* If this parameter belongs to a base class call its method */
@@ -1667,7 +1687,11 @@ pilatusDetector::pilatusDetector(const char *portName, const char *camserverPort
     createParam(PilatusAlphaString,          asynParamFloat64, &PilatusAlpha);
     createParam(PilatusKappaString,          asynParamFloat64, &PilatusKappa);
     createParam(PilatusPhiString,            asynParamFloat64, &PilatusPhi);
+    createParam(PilatusPhiIncrString,        asynParamFloat64, &PilatusPhiIncr);
     createParam(PilatusChiString,            asynParamFloat64, &PilatusChi);
+    createParam(PilatusChiIncrString,        asynParamFloat64, &PilatusChiIncr);
+    createParam(PilatusOmegaString,          asynParamFloat64, &PilatusOmega);
+    createParam(PilatusOmegaIncrString,      asynParamFloat64, &PilatusOmegaIncr);
     createParam(PilatusOscillAxisString,     asynParamOctet,   &PilatusOscillAxis);
     createParam(PilatusNumOscillString,      asynParamInt32,   &PilatusNumOscill);
     createParam(PilatusPixelCutOffString,    asynParamInt32,   &PilatusPixelCutOff);
