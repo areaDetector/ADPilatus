@@ -18,7 +18,7 @@ PROD_SRCS += $(PROD_NAME)_registerRecordDeviceDriver.cpp $(PROD_NAME)Main.cpp
 PROD_LIBS += pilatusDetector
 PROD_LIBS += cbfad
 
-include $(ADCORE)/ADApp/commonDriverMakefile
+include $(ADEXAMPLE)/exampleApp/commonDriverMakefile
 $(PROD_NAME)_DBD += drvAsynIPPort.dbd
 
 #=============================
