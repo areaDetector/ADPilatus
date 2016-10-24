@@ -23,6 +23,10 @@ files respectively, in the configure/ directory of the appropriate release of th
 Release Notes
 =============
 
+R2-3 (XXX-October-2016)
+----
+* Added PhiIncr, ChiIncr, Omega and OmegaIncr to pilatusAncillary.adl medm screen.
+
 R2-2 (13-September-2015)
 ----
 * Fix to allow exposure times less than 1e-6 seconds.
