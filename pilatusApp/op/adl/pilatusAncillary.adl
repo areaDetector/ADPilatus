@@ -1,14 +1,14 @@
 
 file {
-	name="/home/epics/devel/areaDetector/ADApp/op/adl/pilatusAncillary.adl"
-	version=030105
+	name="/home/epics/support/areaDetector/ADPilatus/pilatusApp/op/adl/pilatusAncillary.adl"
+	version=030107
 }
 display {
 	object {
-		x=38
-		y=118
+		x=405
+		y=126
 		width=560
-		height=565
+		height=665
 	}
 	clr=14
 	bclr=4
@@ -392,32 +392,6 @@ text {
 	textix="Kappa"
 	align="horiz. right"
 }
-text {
-	object {
-		x=200
-		y=406
-		width=30
-		height=20
-	}
-	"basic attribute" {
-		clr=14
-	}
-	textix="Phi"
-	align="horiz. right"
-}
-text {
-	object {
-		x=200
-		y=431
-		width=30
-		height=20
-	}
-	"basic attribute" {
-		clr=14
-	}
-	textix="Chi"
-	align="horiz. right"
-}
 "text entry" {
 	object {
 		x=237
@@ -475,65 +449,6 @@ text {
 		clr=14
 		bclr=51
 	}
-	limits {
-	}
-}
-"text entry" {
-	object {
-		x=237
-		y=406
-		width=80
-		height=20
-	}
-	control {
-		chan="$(P)$(R)Phi"
-		clr=14
-		bclr=51
-	}
-	limits {
-	}
-}
-"text entry" {
-	object {
-		x=237
-		y=431
-		width=80
-		height=20
-	}
-	control {
-		chan="$(P)$(R)Chi"
-		clr=14
-		bclr=51
-	}
-	limits {
-	}
-}
-text {
-	object {
-		x=70
-		y=456
-		width=160
-		height=20
-	}
-	"basic attribute" {
-		clr=14
-	}
-	textix="Oscillation axis"
-	align="horiz. right"
-}
-"text entry" {
-	object {
-		x=237
-		y=456
-		width=172
-		height=20
-	}
-	control {
-		chan="$(P)$(R)OscillAxis"
-		clr=14
-		bclr=51
-	}
-	format="string"
 	limits {
 	}
 }
@@ -633,7 +548,7 @@ text {
 	object {
 		x=420
 		y=131
-		width=10
+		width=20
 		height=20
 	}
 	"basic attribute" {
@@ -645,7 +560,7 @@ text {
 	object {
 		x=420
 		y=156
-		width=10
+		width=20
 		height=20
 	}
 	"basic attribute" {
@@ -725,6 +640,82 @@ text {
 	}
 	textix="deg"
 }
+rectangle {
+	object {
+		x=105
+		y=34
+		width=350
+		height=25
+	}
+	"basic attribute" {
+		clr=2
+	}
+}
+text {
+	object {
+		x=240
+		y=36
+		width=80
+		height=20
+	}
+	"basic attribute" {
+		clr=54
+	}
+	textix="$(P)$(R)"
+	align="horiz. centered"
+}
+rectangle {
+	object {
+		x=105
+		y=9
+		width=350
+		height=25
+	}
+	"basic attribute" {
+		clr=2
+	}
+}
+text {
+	object {
+		x=135
+		y=11
+		width=290
+		height=20
+	}
+	"basic attribute" {
+		clr=54
+	}
+	textix="Pilatus Ancillary Information"
+	align="horiz. centered"
+}
+text {
+	object {
+		x=200
+		y=406
+		width=30
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Phi"
+	align="horiz. right"
+}
+"text entry" {
+	object {
+		x=237
+		y=406
+		width=80
+		height=20
+	}
+	control {
+		chan="$(P)$(R)Phi"
+		clr=14
+		bclr=51
+	}
+	limits {
+	}
+}
 text {
 	object {
 		x=420
@@ -739,118 +730,65 @@ text {
 }
 text {
 	object {
-		x=420
-		y=431
-		width=30
+		x=70
+		y=556
+		width=160
 		height=20
 	}
 	"basic attribute" {
 		clr=14
 	}
-	textix="deg"
+	textix="Oscillation axis"
+	align="horiz. right"
 }
-composite {
+"text entry" {
 	object {
-		x=105
-		y=9
-		width=350
-		height=50
-	}
-	"composite name"=""
-	children {
-		rectangle {
-			object {
-				x=105
-				y=34
-				width=350
-				height=25
-			}
-			"basic attribute" {
-				clr=2
-			}
-		}
-		text {
-			object {
-				x=130
-				y=36
-				width=300
-				height=20
-			}
-			"basic attribute" {
-				clr=54
-			}
-			textix="$(P)$(R)"
-			align="horiz. centered"
-		}
-		rectangle {
-			object {
-				x=105
-				y=9
-				width=350
-				height=25
-			}
-			"basic attribute" {
-				clr=2
-			}
-		}
-		text {
-			object {
-				x=130
-				y=11
-				width=300
-				height=20
-			}
-			"basic attribute" {
-				clr=54
-			}
-			textix="Pilatus Ancillary Information"
-			align="horiz. centered"
-		}
-	}
-}
-composite {
-	object {
-		x=10
-		y=481
-		width=307
+		x=237
+		y=556
+		width=172
 		height=20
 	}
-	"composite name"=""
-	children {
-		text {
-			object {
-				x=10
-				y=481
-				width=220
-				height=20
-			}
-			"basic attribute" {
-				clr=14
-			}
-			textix="Number of oscillations"
-			align="horiz. right"
-		}
-		"text entry" {
-			object {
-				x=237
-				y=481
-				width=80
-				height=20
-			}
-			control {
-				chan="$(P)$(R)NumOscill"
-				clr=14
-				bclr=51
-			}
-			limits {
-			}
-		}
+	control {
+		chan="$(P)$(R)OscillAxis"
+		clr=14
+		bclr=51
+	}
+	format="string"
+	limits {
 	}
 }
 text {
 	object {
 		x=10
-		y=506
+		y=581
+		width=220
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Number of oscillations"
+	align="horiz. right"
+}
+"text entry" {
+	object {
+		x=237
+		y=581
+		width=80
+		height=20
+	}
+	control {
+		chan="$(P)$(R)NumOscill"
+		clr=14
+		bclr=51
+	}
+	limits {
+	}
+}
+text {
+	object {
+		x=10
+		y=606
 		width=220
 		height=20
 	}
@@ -863,7 +801,7 @@ text {
 "text entry" {
 	object {
 		x=237
-		y=506
+		y=606
 		width=320
 		height=20
 	}
@@ -878,9 +816,9 @@ text {
 }
 text {
 	object {
-		x=10
-		y=531
-		width=220
+		x=100
+		y=631
+		width=130
 		height=20
 	}
 	"basic attribute" {
@@ -892,7 +830,7 @@ text {
 "text entry" {
 	object {
 		x=237
-		y=531
+		y=631
 		width=320
 		height=20
 	}
@@ -904,4 +842,204 @@ text {
 	format="string"
 	limits {
 	}
+}
+text {
+	object {
+		x=100
+		y=431
+		width=130
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Phi increment"
+	align="horiz. right"
+}
+"text entry" {
+	object {
+		x=237
+		y=431
+		width=80
+		height=20
+	}
+	control {
+		chan="$(P)$(R)PhiIncr"
+		clr=14
+		bclr=51
+	}
+	limits {
+	}
+}
+text {
+	object {
+		x=420
+		y=431
+		width=30
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="deg"
+}
+text {
+	object {
+		x=180
+		y=456
+		width=50
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Omega"
+	align="horiz. right"
+}
+"text entry" {
+	object {
+		x=237
+		y=456
+		width=80
+		height=20
+	}
+	control {
+		chan="$(P)$(R)Omega"
+		clr=14
+		bclr=51
+	}
+	limits {
+	}
+}
+text {
+	object {
+		x=420
+		y=456
+		width=30
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="deg"
+}
+text {
+	object {
+		x=80
+		y=481
+		width=150
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Omega increment"
+	align="horiz. right"
+}
+"text entry" {
+	object {
+		x=237
+		y=481
+		width=80
+		height=20
+	}
+	control {
+		chan="$(P)$(R)OmegaIncr"
+		clr=14
+		bclr=51
+	}
+	limits {
+	}
+}
+text {
+	object {
+		x=420
+		y=481
+		width=30
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="deg"
+}
+text {
+	object {
+		x=200
+		y=506
+		width=30
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Chi"
+	align="horiz. right"
+}
+"text entry" {
+	object {
+		x=237
+		y=506
+		width=80
+		height=20
+	}
+	control {
+		chan="$(P)$(R)Chi"
+		clr=14
+		bclr=51
+	}
+	limits {
+	}
+}
+text {
+	object {
+		x=420
+		y=506
+		width=30
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="deg"
+}
+text {
+	object {
+		x=100
+		y=531
+		width=130
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Chi increment"
+	align="horiz. right"
+}
+"text entry" {
+	object {
+		x=237
+		y=531
+		width=80
+		height=20
+	}
+	control {
+		chan="$(P)$(R)ChiIncr"
+		clr=14
+		bclr=51
+	}
+	limits {
+	}
+}
+text {
+	object {
+		x=420
+		y=531
+		width=30
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="deg"
 }
