@@ -3,6 +3,7 @@ file "NDFile_settings.req", P=$(P), R=$(R)
 $(P)$(R)DelayTime
 $(P)$(R)ThresholdEnergy
 $(P)$(R)ThresholdAutoApply
+$(P)$(R)Energy
 $(P)$(R)GainMenu
 $(P)$(R)ImageFileTmot
 $(P)$(R)BadPixelFile
