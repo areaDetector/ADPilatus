@@ -134,6 +134,28 @@ record(bi, "$(P)$(R)ThresholdAutoApply_RBV")
     field(SCAN, "I/O Intr")
 }
 
+# X-ray energy
+record(ao, "$(P)$(R)Energy")
+{
+    field(PINI, "YES")
+    field(DTYP, "asynFloat64")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ENERGY")
+    field(DESC, "X-ray Energy")
+    field(EGU,  "keV")
+    field(PREC, "3")
+    field(VAL, "20.000")
+}
+
+record(ai, "$(P)$(R)Energy_RBV")
+{
+    field(DTYP, "asynFloat64")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))ENERGY")
+    field(DESC, "X-ray Energy")
+    field(EGU,  "keV")
+    field(PREC, "3")
+    field(SCAN, "I/O Intr")
+}
+
 # Gain menu.  This writes to the Gain PV in the base database.
 record(mbbo, "$(P)$(R)GainMenu")
 {
