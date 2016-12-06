@@ -38,6 +38,10 @@
 
 #include "ADDriver.h"
 
+#define DRIVER_VERSION      2
+#define DRIVER_REVISION     3
+#define DRIVER_MODIFICATION 0
+
 /** Messages to/from camserver */
 #define MAX_MESSAGE_SIZE 256 
 #define MAX_FILENAME_LEN 256
@@ -75,6 +79,7 @@ static const char *driverName = "pilatusDetector";
 #define PilatusThresholdString      "THRESHOLD"
 #define PilatusThresholdApplyString "THRESHOLD_APPLY"
 #define PilatusThresholdAutoApplyString "THRESHOLD_AUTO_APPLY"
+#define PilatusEnergyString         "ENERGY"
 #define PilatusArmedString          "ARMED"
 #define PilatusImageFileTmotString  "IMAGE_FILE_TMOT"
 #define PilatusBadPixelFileString   "BAD_PIXEL_FILE"
@@ -141,6 +146,7 @@ protected:
     int PilatusThreshold;
     int PilatusThresholdApply;
     int PilatusThresholdAutoApply;
+    int PilatusEnergy;
     int PilatusArmed;
     int PilatusImageFileTmot;
     int PilatusBadPixelFile;
@@ -216,6 +222,7 @@ protected:
     badPixel badPixelMap[MAX_BAD_PIXELS];
     double averageFlatField;
     double demandedThreshold;
+    double demandedEnergy;
     int firstStatusCall;
 };
 
@@ -635,6 +642,8 @@ asynStatus pilatusDetector::readTiff(const char *fileName, epicsTimeStamp *pStar
     int size;
     int numStrips, strip;
     char *buffer;
+    char *imageDescription;
+    char tempBuffer[2048];
     TIFF *tiff=NULL;
     epicsUInt32 uval;
 
@@ -697,7 +706,17 @@ asynStatus pilatusDetector::readTiff(const char *fileName, epicsTimeStamp *pStar
                 driverName, functionName, (unsigned long)totalSize, (unsigned long)pImage->dataSize);
             goto retry;
         }
-        /* Sucesss! */
+        /* Sucesss! Read the IMAGEDESCRIPTION tag if it exists */
+        status = TIFFGetField(tiff, TIFFTAG_IMAGEDESCRIPTION, &imageDescription);
+        // Make sure the string is null terminated
+        
+        if (status == 1) {
+            strncpy(tempBuffer, imageDescription, sizeof(tempBuffer));
+            // Make sure the string is null terminated
+            tempBuffer[sizeof(tempBuffer)-1] = 0;
+            pImage->pAttributeList->add("TIFFImageDescription", "TIFFImageDescription", NDAttrString, tempBuffer);
+        }
+        
         break;
         
         retry:
@@ -809,17 +828,20 @@ asynStatus pilatusDetector::setAcquireParams()
 asynStatus pilatusDetector::setThreshold()
 {
     int igain, status;
-    double threshold, dgain;
+    double threshold, dgain, energy;
     char *substr = NULL;
     int threshold_readback = 0;
+    int energy_readback = 0;
     
     getDoubleParam(ADGain, &dgain);
     igain = (int)(dgain + 0.5);
     if (igain < 0) igain = 0;
     if (igain > 3) igain = 3;
     threshold = this->demandedThreshold;
-    epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "SetThreshold %s %f", 
-                    gainStrings[igain], threshold*1000.);
+    energy = this->demandedEnergy;
+    if (energy == 0.) energy = threshold * 2.;
+    epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "SetThreshold energy %.0f %s %.0f", 
+                  energy*1000., gainStrings[igain], threshold*1000.);
     /* Set the status to waiting so we can be notified when it has finished */
     setIntegerParam(ADStatus, ADStatusWaiting);
     setStringParam(ADStatusMessage, "Setting threshold");
@@ -832,7 +854,7 @@ asynStatus pilatusDetector::setThreshold()
         setIntegerParam(ADStatus, ADStatusIdle);
     setIntegerParam(PilatusThresholdApply, 0);
 
-    /* Read back the actual setting, in case we are out of bounds. */
+    /* Read back the actual threshold setting, in case we are out of bounds. */
     epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "SetThreshold");
     status=writeReadCamserver(5.0); 
 
@@ -844,6 +866,15 @@ asynStatus pilatusDetector::setThreshold()
         }
     }
     
+    /* Read back the actual energy setting. */
+    epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "SetEnergy");
+    status=writeReadCamserver(5.0); 
+
+    /* Response should contain "threshold: 9000 eV; vcmp:"*/
+    if (!status) {
+        sscanf(this->fromCamserver, "15 OK Energy setting: %d eV", &energy_readback);
+            setDoubleParam(PilatusEnergy, (double)energy_readback/1000.0);
+    }
 
     /* The SetThreshold command resets numimages to 1 and gapfill to 0, so re-send current
      * acquisition parameters */
@@ -1261,6 +1292,7 @@ asynStatus pilatusDetector::pilatusStatus()
     if (!status) {
       if ((substr = strstr(this->fromCamserver, "tvx")) != NULL) {
         setStringParam(PilatusTvxVersion, substr);
+        setStringParam(ADSDKVersion, substr);
       }
       setIntegerParam(ADStatus, ADStatusIdle);
     } else {
@@ -1412,19 +1444,29 @@ asynStatus pilatusDetector::writeFloat64(asynUser *pasynUser, epicsFloat64 value
 
     /* Changing any of the following parameters requires recomputing the base image */
     if ((function == ADGain) ||
+        (function == PilatusEnergy) ||
         (function == PilatusThreshold)) {
         getIntegerParam(PilatusThresholdAutoApply, &thresholdAutoApply);
         if (function == PilatusThreshold) {
             this->demandedThreshold = value;
         }
+        if (function == PilatusEnergy) {
+            this->demandedEnergy = value;
+        }
         if (thresholdAutoApply) {
           if (function == PilatusThreshold) {
             status = setDoubleParam(function, this->demandedThreshold);
           }
+          if (function == PilatusEnergy) {
+            status = setDoubleParam(function, this->demandedEnergy);
+          }
           setThreshold();
         } else {
-          /*Set the old value back if we are deferring setting the threshold.*/
+          /* Set the old value back if we are deferring setting the threshold.*/
           if (function == PilatusThreshold) {
+            status = setDoubleParam(function, oldValue);
+          }
+          if (function == PilatusEnergy) {
             status = setDoubleParam(function, oldValue);
           }
         }
@@ -1633,6 +1675,7 @@ pilatusDetector::pilatusDetector(const char *portName, const char *camserverPort
 
 {
     int status = asynSuccess;
+    char versionString[20];
     const char *functionName = "pilatusDetector";
     size_t dims[2];
 
@@ -1663,6 +1706,7 @@ pilatusDetector::pilatusDetector(const char *portName, const char *camserverPort
     createParam(PilatusThresholdString,      asynParamFloat64, &PilatusThreshold);
     createParam(PilatusThresholdApplyString, asynParamInt32,   &PilatusThresholdApply);
     createParam(PilatusThresholdAutoApplyString, asynParamInt32,   &PilatusThresholdAutoApply);
+    createParam(PilatusEnergyString,         asynParamFloat64, &PilatusEnergy);
     createParam(PilatusArmedString,          asynParamInt32,   &PilatusArmed);
     createParam(PilatusImageFileTmotString,  asynParamFloat64, &PilatusImageFileTmot);
     createParam(PilatusBadPixelFileString,   asynParamOctet,   &PilatusBadPixelFile);
@@ -1708,6 +1752,9 @@ pilatusDetector::pilatusDetector(const char *portName, const char *camserverPort
     /* Set some default values for parameters */
     status =  setStringParam (ADManufacturer, "Dectris");
     status |= setStringParam (ADModel, "Pilatus");
+    epicsSnprintf(versionString, sizeof(versionString), "%d.%d.%d", 
+                  DRIVER_VERSION, DRIVER_REVISION, DRIVER_MODIFICATION);
+    setStringParam(NDDriverVersion, versionString);
     status |= setIntegerParam(ADMaxSizeX, maxSizeX);
     status |= setIntegerParam(ADMaxSizeY, maxSizeY);
     status |= setIntegerParam(ADSizeX, maxSizeX);
@@ -1751,6 +1798,12 @@ pilatusDetector::pilatusDetector(const char *portName, const char *camserverPort
             driverName, functionName);
         return;
     }
+    
+    // Always call the pilatusStatus() function once to get TVX version, etc.
+    // This must be done with the lock taken
+    lock();
+    pilatusStatus();
+    unlock();
 
 }
 
