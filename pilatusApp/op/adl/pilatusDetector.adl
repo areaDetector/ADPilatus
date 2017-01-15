@@ -1,7 +1,7 @@
 
 file {
-	name="/home/epics/devel/areaDetector-2-5/ADPilatus/pilatusApp/op/adl/pilatusDetector.adl"
-	version=030107
+	name="/home/epics/support/areaDetector-2-6/ADPilatus/pilatusApp/op/adl/pilatusDetector.adl"
+	version=030109
 }
 display {
 	object {
@@ -1727,7 +1727,7 @@ rectangle {
 		x=5
 		y=470
 		width=350
-		height=330
+		height=305
 	}
 	"basic attribute" {
 		clr=14
@@ -2212,71 +2212,6 @@ composite {
 		}
 	}
 }
-composite {
-	object {
-		x=31
-		y=750
-		width=295
-		height=20
-	}
-	"composite name"=""
-	children {
-		text {
-			object {
-				x=31
-				y=750
-				width=110
-				height=20
-			}
-			"basic attribute" {
-				clr=14
-			}
-			textix="TVX version"
-			align="horiz. right"
-		}
-		"text update" {
-			object {
-				x=146
-				y=751
-				width=180
-				height=18
-			}
-			monitor {
-				chan="$(P)$(R)TVXVersion_RBV"
-				clr=54
-				bclr=4
-			}
-			limits {
-			}
-		}
-	}
-}
-text {
-	object {
-		x=21
-		y=775
-		width=170
-		height=20
-	}
-	"basic attribute" {
-		clr=14
-	}
-	textix="Status rate"
-	align="horiz. right"
-}
-menu {
-	object {
-		x=196
-		y=775
-		width=140
-		height=20
-	}
-	control {
-		chan="$(P)$(R)ReadStatus.SCAN"
-		clr=14
-		bclr=51
-	}
-}
 text {
 	object {
 		x=71
@@ -2319,5 +2254,42 @@ text {
 	}
 	align="horiz. centered"
 	limits {
+	}
+}
+composite {
+	object {
+		x=21
+		y=750
+		width=315
+		height=20
+	}
+	"composite name"=""
+	children {
+		text {
+			object {
+				x=21
+				y=750
+				width=170
+				height=20
+			}
+			"basic attribute" {
+				clr=14
+			}
+			textix="Status rate"
+			align="horiz. right"
+		}
+		menu {
+			object {
+				x=196
+				y=750
+				width=140
+				height=20
+			}
+			control {
+				chan="$(P)$(R)ReadStatus.SCAN"
+				clr=14
+				bclr=51
+			}
+		}
 	}
 }
