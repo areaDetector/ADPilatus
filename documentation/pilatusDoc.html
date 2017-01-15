@@ -10,7 +10,7 @@
     <h1>
       areaDetector Pilatus driver</h1>
     <h2>
-      October 1, 2012</h2>
+      January 15, 2017</h2>
     <h2>
       Mark Rivers</h2>
     <h2>
@@ -44,7 +44,16 @@
   <p>
     The camserver program saves the data to disk as TIFF or CBF files. The areaDetector
     software reads these disk files in order to read the data, because camserver does
-    not provide another mechanism to access the data.
+    not provide another mechanism to access the data. If camserver is saving TIFF files
+    then the driver reads the TIFFImageDescription tag from the TIFF file. This is a
+    long string that camserver writes to the file containing all of the detector settings,
+    including threshold, energy, etc. The driver adds this information to the NDArray
+    using an NDAttribute called TIFFImageDescription. The NDFileTIFF plugin in ADCore
+    R2-6 was changed to write this complete attribute to the TIFFImageDescription tag
+    in the new TIFF file. It will also be written by the NDFileNetCDF, NDFileHDF5, and
+    NDFileNexus plugins. However these plugins are currently limited to 256 character
+    string attributes, so some of the information will be lost because the string is
+    longer than 256 characters.
   </p>
   <p>
     This driver inherits from <a href="areaDetectorDoc.html#ADDriver">ADDriver</a>.
@@ -256,13 +265,118 @@ test6_2_0035.tif    test6_2_0035.tif, test6_2_0036.tif, ...
         <td>
           r/w</td>
         <td>
-          Threshold energy in keV</td>
+          Threshold energy in keV. camserver uses this value to set the discriminators in
+          each pixel. It is typically set to the incident x-ray energy ($(P)$(R)Energy), but
+          sometimes other values may be preferable.</td>
         <td>
           THRESHOLD</td>
         <td>
-          $(P)$(R)ThresholdEnergy</td>
+          $(P)$(R)ThresholdEnergy<br />
+          $(P)$(R)ThresholdEnergy_RBV</td>
         <td>
-          ao</td>
+          ao<br />
+          ai</td>
+      </tr>
+      <tr>
+        <td>
+          Pilatus<br />
+          ThresholdApply</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          Apply the threshold value. Setting the threshold can be a time consuming operation,
+          so if ThresholdAutoApply is No then ThresholdApply must be processed to actually
+          send the threshold to camserver.</td>
+        <td>
+          THRESHOLD_APPLY</td>
+        <td>
+          $(P)$(R)ThresholdAppply</td>
+        <td>
+          busy</td>
+      </tr>
+      <tr>
+        <td>
+          Pilatus<br />
+          ThresholdApply</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          Apply the threshold value. Setting the threshold can be a time consuming operation,
+          so if ThresholdAutoApply is No then ThresholdApply must be processed to actually
+          send the threshold to camserver.</td>
+        <td>
+          THRESHOLD_APPLY</td>
+        <td>
+          $(P)$(R)ThresholdApply</td>
+        <td>
+          busy</td>
+      </tr>
+      <tr>
+        <td>
+          Pilatus<br />
+          ThresholdAutoApply</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          Automatically apply the threshold value whenever it changes. Setting the threshold
+          can be a time consuming operation, so if ThresholdAutoApply is No then ThresholdApply
+          must be processed to actually send the threshold to camserver. If it is Yes then
+          the threshold value will be sent to camserver whenever it is changed.</td>
+        <td>
+          THRESHOLD_AUTO_APPLY</td>
+        <td>
+          $(P)$(R)ThresholdAutoApply<br />
+          $(P)$(R)ThresholdAutoApply_RBV</td>
+        <td>
+          bo<br />
+          bi</td>
+      </tr>
+      <tr>
+        <td>
+          Pilatus<br />
+          Energy</td>
+        <td>
+          asynFloat64</td>
+        <td>
+          r/w</td>
+        <td>
+          X-ray energy in keV. This is used by camserver to calculate the proper flat field
+          corrrection. If Energy is 0 then the energy value sent to camserver is ThresholdEnergy*2.
+        </td>
+        <td>
+          ENERGY</td>
+        <td>
+          $(P)$(R)Energy<br />
+          $(P)$(R)Energy_RBV</td>
+        <td>
+          ao<br />
+          ai</td>
+      </tr>
+      <tr>
+        <td>
+          Pilatus<br />
+          GapFill</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          The value that camserver should write to the data file for the gaps between pixels
+          in the detector. Choices are -2, 0, and -1. </td>
+        <td>
+          GAP_FILL</td>
+        <td>
+          $(P)$(R)GapFill<br />
+          $(P)$(R)GapFill_RBV</td>
+        <td>
+          mbbo<br />
+          mbbi</td>
       </tr>
       <tr>
         <td>
@@ -280,7 +394,7 @@ test6_2_0035.tif    test6_2_0035.tif, test6_2_0036.tif, ...
             <li>2 ("Slow/High") Slow shaping time (~400 ns) and high gain. </li>
             <li>3 ("Slow/Ultrahigh") Slowest peaking time (? ns) and highest gain. </li>
           </ul>
-        </td>
+          This is only used on older Pilatus detectors, not the newer ones. </td>
         <td>
           N/A</td>
         <td>
@@ -734,6 +848,23 @@ badX2,badY2 replacementX2,replacementY2
       <tr>
         <td>
           Pilatus<br />
+          PhiIncr</td>
+        <td>
+          asynFloat64</td>
+        <td>
+          r/w</td>
+        <td>
+          MX phi increment to write to CBF and TIFF image header</td>
+        <td>
+          PHI_INCR</td>
+        <td>
+          $(P)$(R)PhiIncr</td>
+        <td>
+          ao</td>
+      </tr>
+      <tr>
+        <td>
+          Pilatus<br />
           Chi</td>
         <td>
           asynFloat64</td>
@@ -745,6 +876,57 @@ badX2,badY2 replacementX2,replacementY2
           CHI</td>
         <td>
           $(P)$(R)Chi</td>
+        <td>
+          ao</td>
+      </tr>
+      <tr>
+        <td>
+          Pilatus<br />
+          ChiIncr</td>
+        <td>
+          asynFloat64</td>
+        <td>
+          r/w</td>
+        <td>
+          MX chi increment to write to CBF and TIFF image header</td>
+        <td>
+          CHI_INCR</td>
+        <td>
+          $(P)$(R)ChiIncr</td>
+        <td>
+          ao</td>
+      </tr>
+      <tr>
+        <td>
+          Pilatus<br />
+          Omage</td>
+        <td>
+          asynFloat64</td>
+        <td>
+          r/w</td>
+        <td>
+          MX omega to write to CBF and TIFF image header.</td>
+        <td>
+          OMEGA</td>
+        <td>
+          $(P)$(R)Omega</td>
+        <td>
+          ao</td>
+      </tr>
+      <tr>
+        <td>
+          Pilatus<br />
+          OmegaIncr</td>
+        <td>
+          asynFloat64</td>
+        <td>
+          r/w</td>
+        <td>
+          MX omega increment to write to CBF and TIFF image header</td>
+        <td>
+          OMEGA_INCR</td>
+        <td>
+          $(P)$(R)OmegaIncr</td>
         <td>
           ao</td>
       </tr>
@@ -946,7 +1128,8 @@ badX2,badY2 replacementX2,replacementY2
         <td>
           r/o</td>
         <td>
-          Version of TVX and camserver.</td>
+          Version of TVX and camserver. This record is redundant with the SDKVersion_RBV record
+          added in ADCore R2-6, which should be used instead.</td>
         <td>
           TVXVERSION</td>
         <td>
