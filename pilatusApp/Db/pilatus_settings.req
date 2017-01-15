@@ -26,7 +26,11 @@ $(P)$(R)Polarization
 $(P)$(R)Alpha
 $(P)$(R)Kappa
 $(P)$(R)Phi
+$(P)$(R)PhiIncr
 $(P)$(R)Chi
+$(P)$(R)ChiIncr
+$(P)$(R)Omega
+$(P)$(R)OmegaIncr
 $(P)$(R)OscillAxis
 $(P)$(R)NumOscill
 $(P)$(R)CbfTemplateFile
