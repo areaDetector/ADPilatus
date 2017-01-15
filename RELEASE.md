@@ -23,8 +23,25 @@ files respectively, in the configure/ directory of the appropriate release of th
 Release Notes
 =============
 
-R2-3 (XXX-October-2016)
+R2-3 (XXX-January 2017)
 ----
+* Added new record Energy.  This is used to tell camserver the actual x-ray energy being used,
+  which is important for proper flat-field corrections.  Previously it was assumed that camserver
+  was setting the energy to 2*ThresholdEnergy. There are 2 problems with this
+  - Sometimes it is desireable to set the threshold to a value which is different from Energy/2.
+  - camserver is always supposed to set the energy to 2*EnergyThreshold if the energy is not 
+    specified.  However, some versions of camserver have a bug and they do not do this unless the
+    energy has been explicitly set at least once.  The driver now always sends the energy value to
+    camserver.  If the Energy record is set to 0 then the driver will send the 2*ThresholdEnergy
+    to camserver for the energy.
+* If camserver is saving TIFF files then the driver now reads the TIFFImageDescription tag from the
+  TIFF file.  This is a long string that camserver writes to the file containing all of the detector
+  settings, including threshold, energy, etc.  The driver adds this information to the NDArray using
+  an NDAttribute called TIFFImageDescription.  The NDFileTIFF plugin in ADCore R2-6 was changed to
+  write this complete attribute to the TIFFImageDescription tag in the new TIFF file.  
+  It will also be written by the NDFileNetCDF, NDFileHDF5, and NDFileNexus plugins.  However these 
+  plugins are currently limited to 256 character string attributes, so some of the information will
+  be lost because the string is longer than 256 characters.
 * Added PhiIncr, ChiIncr, Omega and OmegaIncr to pilatusAncillary.adl medm screen.
 
 R2-2 (13-September-2015)
