@@ -42,7 +42,7 @@ R2-3 (XXX-January 2017)
   It will also be written by the NDFileNetCDF, NDFileHDF5, and NDFileNexus plugins.  However these 
   plugins are currently limited to 256 character string attributes, so some of the information will
   be lost because the string is longer than 256 characters.
-* Added PhiIncr, ChiIncr, Omega and OmegaIncr to pilatusAncillary.adl medm screen.
+* Added PhiIncr, ChiIncr, Omega and OmegaIncr to pilatusAncillary.adl medm screen and pilatus_settings.req.
 
 R2-2 (13-September-2015)
 ----
