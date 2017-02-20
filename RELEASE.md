@@ -23,7 +23,7 @@ files respectively, in the configure/ directory of the appropriate release of th
 Release Notes
 =============
 
-R2-3 (XXX-January 2017)
+R2-3 (20-February-2017)
 ----
 * Added new record Energy.  This is used to tell camserver the actual x-ray energy being used,
   which is important for proper flat-field corrections.  Previously it was assumed that camserver
