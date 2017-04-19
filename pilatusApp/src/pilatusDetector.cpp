@@ -1157,12 +1157,6 @@ void pilatusDetector::pilatusTask()
             getIntegerParam(NDArrayCallbacks, &arrayCallbacks);
 
             if (arrayCallbacks) {
-                getIntegerParam(NDArrayCounter, &imageCounter);
-                imageCounter++;
-                setIntegerParam(NDArrayCounter, imageCounter);
-                /* Call the callbacks to update any changes */
-                callParamCallbacks();
-
                 /* Get an image buffer from the pool */
                 getIntegerParam(ADMaxSizeX, &itemp); dims[0] = itemp;
                 getIntegerParam(ADMaxSizeY, &itemp); dims[1] = itemp;
@@ -1201,6 +1195,12 @@ void pilatusDetector::pilatusTask()
                 /* Get any attributes that have been defined for this driver */        
                 this->getAttributes(pImage->pAttributeList);
                 
+                getIntegerParam(NDArrayCounter, &imageCounter);
+                imageCounter++;
+                setIntegerParam(NDArrayCounter, imageCounter);
+                /* Call the callbacks to update any changes */
+                callParamCallbacks();
+
                 /* Call the NDArray callback */
                 /* Must release the lock here, or we can get into a deadlock, because we can
                  * block on the plugin lock, and the plugin can be calling us */
