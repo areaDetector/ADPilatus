@@ -27,12 +27,12 @@ R2-3 (20-February-2017)
 ----
 * Added new record Energy.  This is used to tell camserver the actual x-ray energy being used,
   which is important for proper flat-field corrections.  Previously it was assumed that camserver
-  was setting the energy to 2*ThresholdEnergy. There are 2 problems with this
+  was setting the energy to 2 * ThresholdEnergy. There are 2 problems with this
   - Sometimes it is desireable to set the threshold to a value which is different from Energy/2.
-  - camserver is always supposed to set the energy to 2*EnergyThreshold if the energy is not 
+  - camserver is always supposed to set the energy to 2 * EnergyThreshold if the energy is not 
     specified.  However, some versions of camserver have a bug and they do not do this unless the
     energy has been explicitly set at least once.  The driver now always sends the energy value to
-    camserver.  If the Energy record is set to 0 then the driver will send the 2*ThresholdEnergy
+    camserver.  If the Energy record is set to 0 then the driver will send the 2 * ThresholdEnergy
     to camserver for the energy.
 * If camserver is saving TIFF files then the driver now reads the TIFFImageDescription tag from the
   TIFF file.  This is a long string that camserver writes to the file containing all of the detector
