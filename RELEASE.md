@@ -22,6 +22,11 @@ files respectively, in the configure/ directory of the appropriate release of th
 
 Release Notes
 =============
+R2-4 (04-July-2017)
+* Only increment NDArrayCounter if the driver got an image.
+  When acquiring with `ADNumImages` > 1, `NDArrayCounter`  was immediately incremented before the driver 
+  confirmed that it actually got an image.
+
 
 R2-3 (20-February-2017)
 ----
