@@ -307,11 +307,7 @@ void pilatusDetector::readFlatFieldFile(const char *flatFieldFile)
         if (*pData < minFlatField) *pData = (epicsInt32)averageFlatField;
     }
     /* Call the NDArray callback */
-    /* Must release the lock here, or we can get into a deadlock, because we can
-     * block on the plugin lock, and the plugin can be calling us */
-    this->unlock();
     doCallbacksGenericPointer(this->pFlatField, NDArrayData, 0);
-    this->lock();
     setIntegerParam(PilatusFlatFieldValid, 1);
 }
 
@@ -1202,13 +1198,9 @@ void pilatusDetector::pilatusTask()
                 callParamCallbacks();
 
                 /* Call the NDArray callback */
-                /* Must release the lock here, or we can get into a deadlock, because we can
-                 * block on the plugin lock, and the plugin can be calling us */
-                this->unlock();
                 asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
                      "%s:%s: calling NDArray callback\n", driverName, functionName);
                 doCallbacksGenericPointer(pImage, NDArrayData, 0);
-                this->lock();
                 /* Free the image buffer */
                 pImage->release();
             }
