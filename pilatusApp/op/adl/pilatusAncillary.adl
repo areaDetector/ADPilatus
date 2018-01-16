@@ -1,12 +1,12 @@
 
 file {
-	name="/home/epics/support/areaDetector/ADPilatus/pilatusApp/op/adl/pilatusAncillary.adl"
-	version=030107
+	name="/home/epics/devel/areaDetector-3-2/ADPilatus/pilatusApp/op/adl/pilatusAncillary.adl"
+	version=030109
 }
 display {
 	object {
-		x=405
-		y=126
+		x=389
+		y=173
 		width=560
 		height=665
 	}
@@ -642,9 +642,9 @@ text {
 }
 rectangle {
 	object {
-		x=105
+		x=0
 		y=34
-		width=350
+		width=560
 		height=25
 	}
 	"basic attribute" {
@@ -653,9 +653,9 @@ rectangle {
 }
 text {
 	object {
-		x=240
+		x=0
 		y=36
-		width=80
+		width=560
 		height=20
 	}
 	"basic attribute" {
@@ -666,9 +666,9 @@ text {
 }
 rectangle {
 	object {
-		x=105
+		x=0
 		y=9
-		width=350
+		width=560
 		height=25
 	}
 	"basic attribute" {
