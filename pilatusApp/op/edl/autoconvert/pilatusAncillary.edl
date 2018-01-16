@@ -3,10 +3,10 @@ beginScreenProperties
 major 4
 minor 0
 release 0
-x 38
-y 118
+x 389
+y 173
 w 560
-h 565
+h 665
 font "helvetica-medium-r-18.0"
 ctlFont "helvetica-medium-r-8.0"
 btnFont "helvetica-medium-r-18.0"
@@ -505,44 +505,6 @@ value {
 }
 endObjectProperties
 
-# (Static Text)
-object activeXTextClass
-beginObjectProperties
-major 4
-minor 0
-release 0
-x 200
-y 406
-w 30
-h 20
-font "helvetica-medium-r-8.0"
-fontAlign "right"
-fgColor index 14
-useDisplayBg
-value {
- "Phi"
-}
-endObjectProperties
-
-# (Static Text)
-object activeXTextClass
-beginObjectProperties
-major 4
-minor 0
-release 0
-x 200
-y 431
-w 30
-h 20
-font "helvetica-medium-r-8.0"
-fontAlign "right"
-fgColor index 14
-useDisplayBg
-value {
- "Chi"
-}
-endObjectProperties
-
 # (Text Control)
 object activeXTextDspClass
 beginObjectProperties
@@ -640,103 +602,6 @@ bgColor index 51
 editable
 autoHeight
 format decimal
-motifWidget
-nullColor index 32
-useHexPrefix
-objType "controls"
-newPos
-endObjectProperties
-
-# (Text Control)
-object activeXTextDspClass
-beginObjectProperties
-major 4
-minor 0
-release 0
-x 237
-y 406
-w 80
-h 20
-controlPv "$(P)$(R)Phi"
-font "helvetica-medium-r-8.0"
-smartRefresh
-fastUpdate
-fgColor index 14
-bgColor index 51
-editable
-autoHeight
-format decimal
-motifWidget
-nullColor index 32
-useHexPrefix
-objType "controls"
-newPos
-endObjectProperties
-
-# (Text Control)
-object activeXTextDspClass
-beginObjectProperties
-major 4
-minor 0
-release 0
-x 237
-y 431
-w 80
-h 20
-controlPv "$(P)$(R)Chi"
-font "helvetica-medium-r-8.0"
-smartRefresh
-fastUpdate
-fgColor index 14
-bgColor index 51
-editable
-autoHeight
-format decimal
-motifWidget
-nullColor index 32
-useHexPrefix
-objType "controls"
-newPos
-endObjectProperties
-
-# (Static Text)
-object activeXTextClass
-beginObjectProperties
-major 4
-minor 0
-release 0
-x 70
-y 456
-w 160
-h 20
-font "helvetica-medium-r-8.0"
-fontAlign "right"
-fgColor index 14
-useDisplayBg
-value {
- "Oscillation axis"
-}
-endObjectProperties
-
-# (Text Control)
-object activeXTextDspClass
-beginObjectProperties
-major 4
-minor 0
-release 0
-x 237
-y 456
-w 172
-h 20
-controlPv "$(P)$(R)OscillAxis"
-font "helvetica-medium-r-8.0"
-smartRefresh
-fastUpdate
-fgColor index 14
-bgColor index 51
-editable
-autoHeight
-format "string"
 motifWidget
 nullColor index 32
 useHexPrefix
@@ -896,7 +761,7 @@ minor 0
 release 0
 x 420
 y 131
-w 10
+w 20
 h 20
 font "helvetica-medium-r-8.0"
 fgColor index 14
@@ -914,7 +779,7 @@ minor 0
 release 0
 x 420
 y 156
-w 10
+w 20
 h 20
 font "helvetica-medium-r-8.0"
 fgColor index 14
@@ -1032,6 +897,121 @@ value {
 }
 endObjectProperties
 
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 0
+y 34
+w 559
+h 24
+lineColor index 2
+fill
+fillColor index 2
+lineWidth 0
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 0
+y 36
+w 560
+h 20
+font "helvetica-medium-r-8.0"
+fontAlign "center"
+fgColor index 54
+useDisplayBg
+value {
+ "$(P)$(R)"
+}
+endObjectProperties
+
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 0
+y 9
+w 559
+h 24
+lineColor index 2
+fill
+fillColor index 2
+lineWidth 0
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 135
+y 11
+w 290
+h 20
+font "helvetica-medium-r-8.0"
+fontAlign "center"
+fgColor index 54
+useDisplayBg
+value {
+ "Pilatus Ancillary Information"
+}
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 200
+y 406
+w 30
+h 20
+font "helvetica-medium-r-8.0"
+fontAlign "right"
+fgColor index 14
+useDisplayBg
+value {
+ "Phi"
+}
+endObjectProperties
+
+# (Text Control)
+object activeXTextDspClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 237
+y 406
+w 80
+h 20
+controlPv "$(P)$(R)Phi"
+font "helvetica-medium-r-8.0"
+smartRefresh
+fastUpdate
+fgColor index 14
+bgColor index 51
+editable
+autoHeight
+format decimal
+motifWidget
+nullColor index 32
+useHexPrefix
+objType "controls"
+newPos
+endObjectProperties
+
 # (Static Text)
 object activeXTextClass
 beginObjectProperties
@@ -1056,120 +1036,44 @@ beginObjectProperties
 major 4
 minor 0
 release 0
-x 420
-y 431
-w 30
+x 70
+y 556
+w 160
 h 20
 font "helvetica-medium-r-8.0"
+fontAlign "right"
 fgColor index 14
 useDisplayBg
 value {
- "deg"
+ "Oscillation axis"
 }
 endObjectProperties
 
-# (Group)
-object activeGroupClass
+# (Text Control)
+object activeXTextDspClass
 beginObjectProperties
 major 4
 minor 0
 release 0
-x 105
-y 9
-w 350
-h 50
-
-beginGroup
-
-
-# (Rectangle)
-object activeRectangleClass
-beginObjectProperties
-major 4
-minor 0
-release 0
-x 105
-y 34
-w 349
-h 24
-lineColor index 2
-fill
-fillColor index 2
-lineWidth 0
-endObjectProperties
-
-# (Static Text)
-object activeXTextClass
-beginObjectProperties
-major 4
-minor 0
-release 0
-x 130
-y 36
-w 300
+x 237
+y 556
+w 172
 h 20
+controlPv "$(P)$(R)OscillAxis"
 font "helvetica-medium-r-8.0"
-fontAlign "center"
-fgColor index 54
-useDisplayBg
-value {
- "$(P)$(R)"
-}
+smartRefresh
+fastUpdate
+fgColor index 14
+bgColor index 51
+editable
+autoHeight
+format "string"
+motifWidget
+nullColor index 32
+useHexPrefix
+objType "controls"
+newPos
 endObjectProperties
-
-# (Rectangle)
-object activeRectangleClass
-beginObjectProperties
-major 4
-minor 0
-release 0
-x 105
-y 9
-w 349
-h 24
-lineColor index 2
-fill
-fillColor index 2
-lineWidth 0
-endObjectProperties
-
-# (Static Text)
-object activeXTextClass
-beginObjectProperties
-major 4
-minor 0
-release 0
-x 130
-y 11
-w 300
-h 20
-font "helvetica-medium-r-8.0"
-fontAlign "center"
-fgColor index 54
-useDisplayBg
-value {
- "Pilatus Ancillary Information"
-}
-endObjectProperties
-
-endGroup
-
-endObjectProperties
-
-
-# (Group)
-object activeGroupClass
-beginObjectProperties
-major 4
-minor 0
-release 0
-x 10
-y 481
-w 307
-h 20
-
-beginGroup
-
 
 # (Static Text)
 object activeXTextClass
@@ -1178,7 +1082,7 @@ major 4
 minor 0
 release 0
 x 10
-y 481
+y 581
 w 220
 h 20
 font "helvetica-medium-r-8.0"
@@ -1197,7 +1101,7 @@ major 4
 minor 0
 release 0
 x 237
-y 481
+y 581
 w 80
 h 20
 controlPv "$(P)$(R)NumOscill"
@@ -1216,11 +1120,6 @@ objType "controls"
 newPos
 endObjectProperties
 
-endGroup
-
-endObjectProperties
-
-
 # (Static Text)
 object activeXTextClass
 beginObjectProperties
@@ -1228,7 +1127,7 @@ major 4
 minor 0
 release 0
 x 10
-y 506
+y 606
 w 220
 h 20
 font "helvetica-medium-r-8.0"
@@ -1247,7 +1146,7 @@ major 4
 minor 0
 release 0
 x 237
-y 506
+y 606
 w 320
 h 20
 controlPv "$(P)$(R)CbfTemplateFile"
@@ -1272,9 +1171,9 @@ beginObjectProperties
 major 4
 minor 0
 release 0
-x 10
-y 531
-w 220
+x 100
+y 631
+w 130
 h 20
 font "helvetica-medium-r-8.0"
 fontAlign "right"
@@ -1292,7 +1191,7 @@ major 4
 minor 0
 release 0
 x 237
-y 531
+y 631
 w 320
 h 20
 controlPv "$(P)$(R)HeaderString"
@@ -1310,40 +1209,319 @@ useHexPrefix
 objType "controls"
 newPos
 endObjectProperties
-# (Group)
-object activeGroupClass
+
+# (Static Text)
+object activeXTextClass
 beginObjectProperties
 major 4
 minor 0
 release 0
-x 105
-y 9
-w 350
-h 50
-
-beginGroup
-
-
-endGroup
-
-endObjectProperties
-
-# (Group)
-object activeGroupClass
-beginObjectProperties
-major 4
-minor 0
-release 0
-x 10
-y 481
-w 307
+x 100
+y 431
+w 130
 h 20
-
-beginGroup
-
-
-endGroup
-
+font "helvetica-medium-r-8.0"
+fontAlign "right"
+fgColor index 14
+useDisplayBg
+value {
+ "Phi increment"
+}
 endObjectProperties
 
+# (Text Control)
+object activeXTextDspClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 237
+y 431
+w 80
+h 20
+controlPv "$(P)$(R)PhiIncr"
+font "helvetica-medium-r-8.0"
+smartRefresh
+fastUpdate
+fgColor index 14
+bgColor index 51
+editable
+autoHeight
+format decimal
+motifWidget
+nullColor index 32
+useHexPrefix
+objType "controls"
+newPos
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 420
+y 431
+w 30
+h 20
+font "helvetica-medium-r-8.0"
+fgColor index 14
+useDisplayBg
+value {
+ "deg"
+}
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 180
+y 456
+w 50
+h 20
+font "helvetica-medium-r-8.0"
+fontAlign "right"
+fgColor index 14
+useDisplayBg
+value {
+ "Omega"
+}
+endObjectProperties
+
+# (Text Control)
+object activeXTextDspClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 237
+y 456
+w 80
+h 20
+controlPv "$(P)$(R)Omega"
+font "helvetica-medium-r-8.0"
+smartRefresh
+fastUpdate
+fgColor index 14
+bgColor index 51
+editable
+autoHeight
+format decimal
+motifWidget
+nullColor index 32
+useHexPrefix
+objType "controls"
+newPos
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 420
+y 456
+w 30
+h 20
+font "helvetica-medium-r-8.0"
+fgColor index 14
+useDisplayBg
+value {
+ "deg"
+}
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 80
+y 481
+w 150
+h 20
+font "helvetica-medium-r-8.0"
+fontAlign "right"
+fgColor index 14
+useDisplayBg
+value {
+ "Omega increment"
+}
+endObjectProperties
+
+# (Text Control)
+object activeXTextDspClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 237
+y 481
+w 80
+h 20
+controlPv "$(P)$(R)OmegaIncr"
+font "helvetica-medium-r-8.0"
+smartRefresh
+fastUpdate
+fgColor index 14
+bgColor index 51
+editable
+autoHeight
+format decimal
+motifWidget
+nullColor index 32
+useHexPrefix
+objType "controls"
+newPos
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 420
+y 481
+w 30
+h 20
+font "helvetica-medium-r-8.0"
+fgColor index 14
+useDisplayBg
+value {
+ "deg"
+}
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 200
+y 506
+w 30
+h 20
+font "helvetica-medium-r-8.0"
+fontAlign "right"
+fgColor index 14
+useDisplayBg
+value {
+ "Chi"
+}
+endObjectProperties
+
+# (Text Control)
+object activeXTextDspClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 237
+y 506
+w 80
+h 20
+controlPv "$(P)$(R)Chi"
+font "helvetica-medium-r-8.0"
+smartRefresh
+fastUpdate
+fgColor index 14
+bgColor index 51
+editable
+autoHeight
+format decimal
+motifWidget
+nullColor index 32
+useHexPrefix
+objType "controls"
+newPos
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 420
+y 506
+w 30
+h 20
+font "helvetica-medium-r-8.0"
+fgColor index 14
+useDisplayBg
+value {
+ "deg"
+}
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 100
+y 531
+w 130
+h 20
+font "helvetica-medium-r-8.0"
+fontAlign "right"
+fgColor index 14
+useDisplayBg
+value {
+ "Chi increment"
+}
+endObjectProperties
+
+# (Text Control)
+object activeXTextDspClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 237
+y 531
+w 80
+h 20
+controlPv "$(P)$(R)ChiIncr"
+font "helvetica-medium-r-8.0"
+smartRefresh
+fastUpdate
+fgColor index 14
+bgColor index 51
+editable
+autoHeight
+format decimal
+motifWidget
+nullColor index 32
+useHexPrefix
+objType "controls"
+newPos
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 420
+y 531
+w 30
+h 20
+font "helvetica-medium-r-8.0"
+fgColor index 14
+useDisplayBg
+value {
+ "deg"
+}
+endObjectProperties
 
