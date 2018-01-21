@@ -1316,7 +1316,7 @@ asynStatus pilatusDetector::pilatusStatus()
       substr = strrchr(this->fromCamserver, ' ') + 1;
       setStringParam(PilatusTvxVersion, substr);
       setStringParam(ADSDKVersion, substr);
-      if (substr[1] == 't') substr += 4;
+      if (substr[0] == 't') substr += 4;
       sscanf(substr, "%lf", &camserverVersion);
       setIntegerParam(ADStatus, ADStatusIdle);
     } else {
