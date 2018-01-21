@@ -61,6 +61,36 @@ record(bi, "$(P)$(R)Armed")
     field(SCAN, "I/O Intr")
 }
 
+# Reset module power 
+record(bo, "$(P)$(R)ResetPower")
+{
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))RESET_POWER")
+    field(ZNAM, "Done")
+    field(ONAM, "Reset")
+}
+
+# Reset module power delay time
+record(longout, "$(P)$(R)ResetPowerTime")
+{
+    field(PINI, "YES")
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))RESET_POWER_TIME")
+    field(DESC, "Reset module power wait time")
+    field(VAL,  "1")
+    field(EGU,  "Seconds")
+}
+
+# Reset module power delay time
+record(longin, "$(P)$(R)ResetPowerTime_RBV")
+{
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))RESET_POWER_TIME")
+    field(DESC, "Reset module power wait time")
+    field(EGU,  "Seconds")
+    field(SCAN, "I/O Intr")
+}
+
 # Delay time in External Trigger mode.
 record(ao, "$(P)$(R)DelayTime")
 {
