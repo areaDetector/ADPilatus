@@ -22,6 +22,21 @@ files respectively, in the configure/ directory of the appropriate release of th
 
 Release Notes
 =============
+R2-5 (XXX-February-2018)
+* Added support for the ResetModulePower command in camserver 7.9.0 and higher.
+  This is important for CdTe detectors where the high-voltage needs to be cycled from
+  time to time, particularly after strong saturation of pixels.
+* Fixed the parsing of the camserver "Version" command for new versions of camserver
+  where it no longer contains the string "tvx-".
+* Fixed the parsing of the camserver "Thread" command to read the temperature and
+  relative humdidity.  Recent camserver versions do not always return "Channel 0:", 
+  and this prevented it from working correctly.
+* Fixed medm adl files to improve the autoconversion to other display manager files.
+* Added op/Makefile to automatically convert adl files to edl, ui, and opi files.
+* Updated the edl, ui, and opi autoconvert directories to contain the conversions
+  from the most recent adl files.
+
+
 R2-4 (04-July-2017)
 * Only increment NDArrayCounter if the driver got an image.
   When acquiring with `ADNumImages` > 1, `NDArrayCounter`  was immediately incremented before the driver 
