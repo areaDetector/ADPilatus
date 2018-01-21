@@ -1388,7 +1388,7 @@ rectangle {
 		x=5
 		y=470
 		width=350
-		height=305
+		height=355
 	}
 	"basic attribute" {
 		clr=14
@@ -1596,7 +1596,7 @@ text {
 text {
 	object {
 		x=21
-		y=650
+		y=700
 		width=170
 		height=20
 	}
@@ -1609,7 +1609,7 @@ text {
 "text entry" {
 	object {
 		x=196
-		y=650
+		y=700
 		width=60
 		height=20
 	}
@@ -1624,7 +1624,7 @@ text {
 "text update" {
 	object {
 		x=262
-		y=676
+		y=726
 		width=61
 		height=18
 	}
@@ -1640,7 +1640,7 @@ text {
 menu {
 	object {
 		x=196
-		y=675
+		y=725
 		width=60
 		height=20
 	}
@@ -1653,7 +1653,7 @@ menu {
 text {
 	object {
 		x=111
-		y=675
+		y=725
 		width=80
 		height=20
 	}
@@ -1666,7 +1666,7 @@ text {
 text {
 	object {
 		x=32
-		y=700
+		y=750
 		width=110
 		height=20
 	}
@@ -1679,7 +1679,7 @@ text {
 "text update" {
 	object {
 		x=147
-		y=701
+		y=751
 		width=60
 		height=18
 	}
@@ -1695,7 +1695,7 @@ text {
 "text update" {
 	object {
 		x=212
-		y=701
+		y=751
 		width=60
 		height=18
 	}
@@ -1711,7 +1711,7 @@ text {
 "text update" {
 	object {
 		x=276
-		y=701
+		y=751
 		width=60
 		height=18
 	}
@@ -1727,7 +1727,7 @@ text {
 text {
 	object {
 		x=61
-		y=725
+		y=775
 		width=80
 		height=20
 	}
@@ -1740,7 +1740,7 @@ text {
 "text update" {
 	object {
 		x=146
-		y=726
+		y=776
 		width=60
 		height=18
 	}
@@ -1756,7 +1756,7 @@ text {
 "text update" {
 	object {
 		x=211
-		y=726
+		y=776
 		width=60
 		height=18
 	}
@@ -1772,7 +1772,7 @@ text {
 "text update" {
 	object {
 		x=275
-		y=726
+		y=776
 		width=60
 		height=18
 	}
@@ -1783,6 +1783,32 @@ text {
 	}
 	align="horiz. centered"
 	limits {
+	}
+}
+text {
+	object {
+		x=21
+		y=800
+		width=170
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Status rate"
+	align="horiz. right"
+}
+menu {
+	object {
+		x=196
+		y=800
+		width=140
+		height=20
+	}
+	control {
+		chan="$(P)$(R)ReadStatus.SCAN"
+		clr=14
+		bclr=51
 	}
 }
 text {
@@ -1832,26 +1858,72 @@ text {
 text {
 	object {
 		x=21
-		y=750
+		y=675
 		width=170
 		height=20
 	}
 	"basic attribute" {
 		clr=14
 	}
-	textix="Status rate"
+	textix="Reset power delay"
 	align="horiz. right"
 }
-menu {
+"text entry" {
 	object {
 		x=196
-		y=750
-		width=140
+		y=675
+		width=60
 		height=20
 	}
 	control {
-		chan="$(P)$(R)ReadStatus.SCAN"
+		chan="$(P)$(R)ResetPowerTime"
 		clr=14
 		bclr=51
 	}
+	limits {
+	}
+}
+"text update" {
+	object {
+		x=262
+		y=676
+		width=60
+		height=18
+	}
+	monitor {
+		chan="$(P)$(R)ResetPowerTime_RBV"
+		clr=54
+		bclr=4
+	}
+	align="horiz. centered"
+	limits {
+	}
+}
+text {
+	object {
+		x=9
+		y=650
+		width=180
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Reset module power"
+	align="horiz. right"
+}
+"message button" {
+	object {
+		x=196
+		y=650
+		width=60
+		height=19
+	}
+	control {
+		chan="$(P)$(R)ResetPower"
+		clr=14
+		bclr=51
+	}
+	label="Reset"
+	press_msg="1"
 }
