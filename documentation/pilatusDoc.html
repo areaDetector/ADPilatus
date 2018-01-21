@@ -10,7 +10,7 @@
     <h1>
       areaDetector Pilatus driver</h1>
     <h2>
-      January 15, 2017</h2>
+      January 21, 2018</h2>
     <h2>
       Mark Rivers</h2>
     <h2>
@@ -420,6 +420,48 @@ test6_2_0035.tif    test6_2_0035.tif, test6_2_0036.tif, ...
         <td>
           $(P)$(R)Armed</td>
         <td>
+          bi</td>
+      </tr>
+      <tr>
+        <td>
+          Pilatus<br />
+          ResetPower</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          Processing this record sends the "ResetModulePower delayTime" command to camserver.
+          This cycles the high voltage and other detector supply voltages. This is particularly
+          useful with the CdTe detectors when they have been exposed to a very strong signal.
+          Cycling the power can erase the memory effects of oversaturation. The delayTime
+          controls the amount of time to wait after turning off the power before turning it
+          back on again. It is set by the ResetPowerTime record.</td>
+        <td>
+          RESET_POWER</td>
+        <td>
+          $(P)$(R)ResetPower</td>
+        <td>
+          bo</td>
+      </tr>
+      <tr>
+        <td>
+          Pilatus<br />
+          ResetPowerTime</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          This record controls the number of seconds to wait after turning off the power before
+          turning it back on again when the ResetPower record is processed.</td>
+        <td>
+          RESET_POWER_TIME</td>
+        <td>
+          $(P)$(R)ResetPower<br />
+          $(P)$(R)ResetPower_RBV</td>
+        <td>
+          bo<br />
           bi</td>
       </tr>
       <tr>
