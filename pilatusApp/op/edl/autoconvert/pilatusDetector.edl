@@ -1940,7 +1940,7 @@ release 0
 x 5
 y 470
 w 350
-h 305
+h 355
 lineColor index 14
 fillColor index 14
 lineWidth 0
@@ -2193,7 +2193,7 @@ major 4
 minor 0
 release 0
 x 21
-y 650
+y 700
 w 170
 h 20
 font "helvetica-medium-r-8.0"
@@ -2212,7 +2212,7 @@ major 4
 minor 0
 release 0
 x 196
-y 650
+y 700
 w 60
 h 20
 controlPv "$(P)$(R)ImageFileTmot"
@@ -2238,7 +2238,7 @@ major 4
 minor 0
 release 0
 x 262
-y 676
+y 726
 w 61
 h 18
 controlPv "$(P)$(R)GapFill_RBV"
@@ -2263,7 +2263,7 @@ major 4
 minor 0
 release 0
 x 111
-y 675
+y 725
 w 80
 h 20
 font "helvetica-medium-r-8.0"
@@ -2282,7 +2282,7 @@ major 4
 minor 0
 release 0
 x 32
-y 700
+y 750
 w 110
 h 20
 font "helvetica-medium-r-8.0"
@@ -2301,7 +2301,7 @@ major 4
 minor 0
 release 0
 x 147
-y 701
+y 751
 w 60
 h 18
 controlPv "$(P)$(R)Temp0_RBV"
@@ -2326,7 +2326,7 @@ major 4
 minor 0
 release 0
 x 212
-y 701
+y 751
 w 60
 h 18
 controlPv "$(P)$(R)Temp1_RBV"
@@ -2351,7 +2351,7 @@ major 4
 minor 0
 release 0
 x 276
-y 701
+y 751
 w 60
 h 18
 controlPv "$(P)$(R)Temp2_RBV"
@@ -2376,7 +2376,7 @@ major 4
 minor 0
 release 0
 x 61
-y 725
+y 775
 w 80
 h 20
 font "helvetica-medium-r-8.0"
@@ -2395,7 +2395,7 @@ major 4
 minor 0
 release 0
 x 146
-y 726
+y 776
 w 60
 h 18
 controlPv "$(P)$(R)Humid0_RBV"
@@ -2420,7 +2420,7 @@ major 4
 minor 0
 release 0
 x 211
-y 726
+y 776
 w 60
 h 18
 controlPv "$(P)$(R)Humid1_RBV"
@@ -2445,7 +2445,7 @@ major 4
 minor 0
 release 0
 x 275
-y 726
+y 776
 w 60
 h 18
 controlPv "$(P)$(R)Humid2_RBV"
@@ -2461,6 +2461,25 @@ nullColor index 32
 useHexPrefix
 objType "controls"
 newPos
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 21
+y 800
+w 170
+h 20
+font "helvetica-medium-r-8.0"
+fontAlign "right"
+fgColor index 14
+useDisplayBg
+value {
+ "Status rate"
+}
 endObjectProperties
 
 # (Static Text)
@@ -2540,7 +2559,7 @@ major 4
 minor 0
 release 0
 x 21
-y 750
+y 675
 w 170
 h 20
 font "helvetica-medium-r-8.0"
@@ -2548,7 +2567,77 @@ fontAlign "right"
 fgColor index 14
 useDisplayBg
 value {
- "Status rate"
+ "Reset power delay"
+}
+endObjectProperties
+
+# (Text Control)
+object activeXTextDspClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 196
+y 675
+w 60
+h 20
+controlPv "$(P)$(R)ResetPowerTime"
+font "helvetica-medium-r-8.0"
+smartRefresh
+fastUpdate
+fgColor index 14
+bgColor index 51
+editable
+autoHeight
+format decimal
+motifWidget
+nullColor index 32
+useHexPrefix
+objType "controls"
+newPos
+endObjectProperties
+
+# (Text Control)
+object activeXTextDspClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 262
+y 676
+w 60
+h 18
+controlPv "$(P)$(R)ResetPowerTime_RBV"
+font "helvetica-medium-r-8.0"
+fontAlign "center"
+smartRefresh
+fastUpdate
+fgColor index 54
+bgColor index 4
+autoHeight
+format decimal
+nullColor index 32
+useHexPrefix
+objType "controls"
+newPos
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 9
+y 650
+w 180
+h 20
+font "helvetica-medium-r-8.0"
+fontAlign "right"
+fgColor index 14
+useDisplayBg
+value {
+ "Reset module power"
 }
 endObjectProperties
 
@@ -2778,7 +2867,7 @@ major 4
 minor 0
 release 0
 x 196
-y 675
+y 725
 w 60
 h 20
 fgColor index 14
@@ -2798,7 +2887,7 @@ major 4
 minor 0
 release 0
 x 196
-y 750
+y 800
 w 140
 h 20
 fgColor index 14
@@ -2808,6 +2897,31 @@ topShadowColor index 2
 botShadowColor index 12
 controlPv "$(P)$(R)ReadStatus.SCAN"
 indicatorPv "$(P)$(R)ReadStatus.SCAN"
+font "helvetica-medium-r-10.0"
+endObjectProperties
+
+# (Message Button)
+object activeMessageButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 196
+y 650
+w 60
+h 19
+fgColor index 14
+onColor index 51
+offColor index 51
+topShadowColor index 0
+botShadowColor index 14
+controlPv "$(P)$(R)ResetPower"
+pressValue "1"
+releaseValue 
+onLabel "Reset"
+offLabel "Reset"
+3d
+useEnumNumeric
 font "helvetica-medium-r-10.0"
 endObjectProperties
 
