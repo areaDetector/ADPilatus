@@ -22,7 +22,7 @@ files respectively, in the configure/ directory of the appropriate release of th
 
 Release Notes
 =============
-R2-5 (XXX-February-2018)
+R2-5 (28-January-2018)
 * Added support for the ResetModulePower command in camserver 7.9.0 and higher.
   This is important for CdTe detectors where the high-voltage needs to be cycled from
   time to time, particularly after strong saturation of pixels.
