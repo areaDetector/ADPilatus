@@ -22,7 +22,16 @@ files respectively, in the configure/ directory of the appropriate release of th
 
 Release Notes
 =============
+R2-6 (2-July-2018)
+---
+* Added support for new PVs in ADCore R3-3 in opi files (NumQueuedArrays, etc.)
+* Added ADBuffers.adl to main medm screen.
+* Changed configure/RELEASE files for compatibility with areaDetector R3-3.
+* Improved op/*/autoconvert/* files with better medm files and better converters.
+
+
 R2-5 (28-January-2018)
+---
 * Added support for the ResetModulePower command in camserver 7.9.0 and higher.
   This is important for CdTe detectors where the high-voltage needs to be cycled from
   time to time, particularly after strong saturation of pixels.
@@ -38,6 +47,7 @@ R2-5 (28-January-2018)
 
 
 R2-4 (04-July-2017)
+---
 * Only increment NDArrayCounter if the driver got an image.
   When acquiring with `ADNumImages` > 1, `NDArrayCounter`  was immediately incremented before the driver 
   confirmed that it actually got an image.
@@ -91,7 +101,3 @@ R1-9-1 and earlier
 Release notes are part of the
 [areaDetector Release Notes](http://cars.uchicago.edu/software/epics/areaDetectorReleaseNotes.html).
 
-
-Future Releases
-===============
-* Support SetEnergy camserver command?
