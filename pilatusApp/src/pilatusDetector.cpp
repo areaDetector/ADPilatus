@@ -39,7 +39,7 @@
 #include "ADDriver.h"
 
 #define DRIVER_VERSION      2
-#define DRIVER_REVISION     5
+#define DRIVER_REVISION     6
 #define DRIVER_MODIFICATION 0
 
 /** Messages to/from camserver */
