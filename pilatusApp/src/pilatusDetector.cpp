@@ -52,7 +52,7 @@
 #define CAMSERVER_DEFAULT_TIMEOUT 1.0
 /** Additional time to wait for a camserver response after the acquire should be complete */ 
 #define CAMSERVER_ACQUIRE_TIMEOUT 10.
-#define CAMSERVER_RESET_POWER_TIMEOUT 10.
+#define CAMSERVER_RESET_POWER_TIMEOUT 30.
 /** Time between checking to see if image file is complete */
 #define FILE_READ_DELAY .01
 
