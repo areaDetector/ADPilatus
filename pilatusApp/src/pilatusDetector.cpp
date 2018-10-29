@@ -1166,7 +1166,7 @@ void pilatusDetector::pilatusTask()
                     aborted = 1;
                     if(status==asynTimeout) {
                         setStringParam(ADStatusMessage, "Timeout waiting for camserver response");
-                        epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "Stop");
+                        epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "camcmd k");
                         writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
                         epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "K");
                         writeCamserver(CAMSERVER_DEFAULT_TIMEOUT);
@@ -1266,7 +1266,7 @@ void pilatusDetector::pilatusTask()
             /* In the case of a timeout, camserver could still be acquiring. So we need to send a stop.*/
             if (status == asynTimeout) {
                 setStringParam(ADStatusMessage, "Timeout waiting for camserver response");
-                epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "Stop");
+                epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "camcmd k");
                 writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
                 epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "K");
                 writeCamserver(CAMSERVER_DEFAULT_TIMEOUT);
@@ -1399,7 +1399,7 @@ asynStatus pilatusDetector::writeInt32(asynUser *pasynUser, epicsInt32 value)
         if (!value && (adstatus == ADStatusAcquire)) {
           /* This was a command to stop acquisition */
             epicsEventSignal(this->stopEventId);
-            epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "Stop");
+            epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "camcmd k");
             writeReadCamserver(CAMSERVER_DEFAULT_TIMEOUT);
             epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "K");
             writeCamserver(CAMSERVER_DEFAULT_TIMEOUT);
