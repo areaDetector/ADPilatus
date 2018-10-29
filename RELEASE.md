@@ -22,6 +22,15 @@ files respectively, in the configure/ directory of the appropriate release of th
 
 Release Notes
 =============
+R2-7 (XXX-November-2018)
+---
+* Fixed problem with stopping an acquisition.  Previously the driver was sending the commands
+  "Stop" and "K", because these were the required commands for an old version of camserver.
+  New versions of camserver no longer support the "Stop" command, and the "K" command only
+  stops an acquisition series, not the current acquisition.  Replaced the "Stop" command with
+  "camcmd k" which also stops the current acquisition.
+
+
 R2-6 (2-July-2018)
 ---
 * Added support for new PVs in ADCore R3-3 in opi files (NumQueuedArrays, etc.)
