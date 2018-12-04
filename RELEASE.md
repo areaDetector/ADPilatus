@@ -22,13 +22,14 @@ files respectively, in the configure/ directory of the appropriate release of th
 
 Release Notes
 =============
-R2-7 (XXX-November-2018)
+R2-7 (3-December-2018)
 ---
 * Fixed problem with stopping an acquisition.  Previously the driver was sending the commands
   "Stop" and "K", because these were the required commands for an old version of camserver.
   New versions of camserver no longer support the "Stop" command, and the "K" command only
   stops an acquisition series, not the current acquisition.  Replaced the "Stop" command with
   "camcmd k" which also stops the current acquisition.
+* Increased the timeout for response on a camserver power reset command.
 
 
 R2-6 (2-July-2018)
