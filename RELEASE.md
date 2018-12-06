@@ -22,6 +22,11 @@ files respectively, in the configure/ directory of the appropriate release of th
 
 Release Notes
 =============
+R2-8 (XXX-December-2018)
+---
+* Moved cbfSrc from this repository to ADSupport/supportApp/cbfSrc.
+  This allows the new ADMMPAD repository to use the code as well.
+
 R2-7 (4-December-2018)
 ---
 * Fixed problem with stopping an acquisition.  Previously the driver was sending the commands
