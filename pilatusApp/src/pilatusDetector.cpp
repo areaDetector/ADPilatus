@@ -193,7 +193,6 @@ protected:
     int PilatusTvxVersion;
     int PilatusCbfTemplateFile;
     int PilatusHeaderString;
-    #define LAST_PILATUS_PARAM PilatusHeaderString
 
  private:                                       
     /* These are the methods that are new to this class */
@@ -232,8 +231,6 @@ protected:
     int firstStatusCall;
     double camserverVersion;
 };
-
-#define NUM_PILATUS_PARAMS ((int)(&LAST_PILATUS_PARAM - &FIRST_PILATUS_PARAM + 1))
 
 void pilatusDetector::readBadPixelFile(const char *badPixelFile)
 {
@@ -1689,7 +1686,7 @@ pilatusDetector::pilatusDetector(const char *portName, const char *camserverPort
                                 int maxBuffers, size_t maxMemory,
                                 int priority, int stackSize)
 
-    : ADDriver(portName, 1, NUM_PILATUS_PARAMS, maxBuffers, maxMemory,
+    : ADDriver(portName, 1, 0, maxBuffers, maxMemory,
                0, 0,             /* No interfaces beyond those set in ADDriver.cpp */
                ASYN_CANBLOCK, 1, /* ASYN_CANBLOCK=1, ASYN_MULTIDEVICE=0, autoConnect=1 */
                priority, stackSize),
