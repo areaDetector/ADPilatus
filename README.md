@@ -2,10 +2,10 @@ ADPilatus
 ===========
 An 
 [EPICS](http://www.aps.anl.gov/epics/) 
-[areaDetector](http://cars.uchicago.edu/software/epics/areaDetector.html) 
+[areaDetector](https://cars.uchicago.edu/software/epics/areaDetector.html) 
 driver for the Pilatus pixel array detectors from 
 [Dectris](http://www.dectris.com).
 
 Additional information:
-* [Documentation](http://cars.uchicago.edu/software/epics/pilatusDoc.html).
+* [Documentation](https://cars.uchicago.edu/software/epics/pilatusDoc.html).
 * [Release notes and links to source and binary releases](RELEASE.md).
