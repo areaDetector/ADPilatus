@@ -1673,7 +1673,6 @@ extern "C" int pilatusDetectorConfig(const char *portName, const char *camserver
   *            communicate with camserver.
   * \param[in] maxSizeX The size of the Pilatus detector in the X direction.
   * \param[in] maxSizeY The size of the Pilatus detector in the Y direction.
-  * \param[in] portName The name of the asyn port driver to be created.
   * \param[in] maxBuffers The maximum number of NDArray buffers that the NDArrayPool for this driver is 
   *            allowed to allocate. Set this to -1 to allow an unlimited number of buffers.
   * \param[in] maxMemory The maximum amount of memory that the NDArrayPool for this driver is 
