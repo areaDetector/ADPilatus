@@ -646,6 +646,9 @@ asynStatus pilatusDetector::readTiff(const char *fileName, epicsTimeStamp *pStar
     char tempBuffer[2048];
     TIFF *tiff=NULL;
     epicsUInt32 uval;
+    NDArrayInfo arrayInfo;
+    
+    pImage->getInfo(&arrayInfo);
 
     deltaTime = 0.;
     epicsTimeGetCurrent(&tStart);
@@ -686,8 +689,8 @@ asynStatus pilatusDetector::readTiff(const char *fileName, epicsTimeStamp *pStar
         numStrips= TIFFNumberOfStrips(tiff);
         buffer = (char *)pImage->pData;
         totalSize = 0;
-        for (strip=0; (strip < numStrips) && (totalSize < pImage->dataSize); strip++) {
-            size = TIFFReadEncodedStrip(tiff, 0, buffer, pImage->dataSize-totalSize);
+        for (strip=0; (strip < numStrips) && (totalSize < arrayInfo.totalBytes); strip++) {
+            size = TIFFReadEncodedStrip(tiff, 0, buffer, arrayInfo.totalBytes-totalSize);
             if (size == -1) {
                 /* There was an error reading the file.  Most commonly this is because the file
                  * was not yet completely written.  Try again. */
@@ -699,11 +702,11 @@ asynStatus pilatusDetector::readTiff(const char *fileName, epicsTimeStamp *pStar
             buffer += size;
             totalSize += size;
         }
-        if (totalSize != pImage->dataSize) {
+        if (totalSize != arrayInfo.totalBytes) {
             status = asynError;
             asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
                 "%s::%s, file size incorrect =%lu, should be %lu\n",
-                driverName, functionName, (unsigned long)totalSize, (unsigned long)pImage->dataSize);
+                driverName, functionName, (unsigned long)totalSize, (unsigned long)arrayInfo.totalBytes);
             goto retry;
         }
         /* Sucesss! Read the IMAGEDESCRIPTION tag if it exists */
