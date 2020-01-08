@@ -1328,7 +1328,6 @@ asynStatus pilatusDetector::pilatusStatus()
   /* Read temp and humidity.*/
   epicsSnprintf(this->toCamserver, sizeof(this->toCamserver), "thread");
   status=writeReadCamserver(1.0); 
-
   /* Response should contain: 
      Channel 0: Temperature = 31.4C, Rel. Humidity = 22.1%;\n
      Channel 1: Temperature = 25.8C, Rel. Humidity = 33.5%;\n
@@ -1352,6 +1351,11 @@ asynStatus pilatusDetector::pilatusStatus()
         sscanf(substr, "Channel 2: Temperature = %fC, Rel. Humidity = %f", &temp, &humid);
         setDoubleParam(PilatusThTemp2, temp);
         setDoubleParam(PilatusThHumid2, humid);
+    }
+    if ((substr = strstr(this->fromCamserver, "Channel 3")) != NULL) {
+        sscanf(substr, "Channel 3: Temperature = %fC, Rel. Humidity = %f", &temp, &humid);
+        setDoubleParam(PilatusThTemp0, temp);
+        setDoubleParam(PilatusThHumid0, humid);
     }
 
   } else {
