@@ -22,8 +22,14 @@ files respectively, in the configure/ directory of the appropriate release of th
 
 Release Notes
 =============
-R2-8 (XXX-December-2018)
+R2-8 (9-January-2020)
 ---
+* Fixed a serious bug in the readTiff function that could cause the driver to
+  time out reading a TIFF file.
+  It was using NDArray::dataSize as the expected size of the TIFF file.
+  This is incorrect, dataSize can be larger than the expected size.
+  Changed to call NDArray::getInfo() to determine the expected size of the file.
+* Added temperature/humidity channel 3.  Some detectors use channel 3.
 * Moved cbfSrc from this repository to ADSupport/supportApp/cbfSrc.
   This allows the new ADMMPAD repository to use the code as well.
 
