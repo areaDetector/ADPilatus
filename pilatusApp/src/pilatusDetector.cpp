@@ -1202,6 +1202,14 @@ void pilatusDetector::pilatusTask()
                     continue;
                 }
 
+                /* We successfully read an image - increment the array counter */
+                getIntegerParam(NDArrayCounter, &imageCounter);
+                imageCounter++;
+                setIntegerParam(NDArrayCounter, imageCounter);
+                /* Call the callbacks to update any changes */
+                callParamCallbacks();
+
+                /* Now assemble the NDArray */
                 getIntegerParam(PilatusFlatFieldValid, &flatFieldValid);
                 if (flatFieldValid) {
                     epicsInt32 *pData, *pFlat;
@@ -1220,12 +1228,6 @@ void pilatusDetector::pilatusTask()
                 /* Get any attributes that have been defined for this driver */        
                 this->getAttributes(pImage->pAttributeList);
                 
-                getIntegerParam(NDArrayCounter, &imageCounter);
-                imageCounter++;
-                setIntegerParam(NDArrayCounter, imageCounter);
-                /* Call the callbacks to update any changes */
-                callParamCallbacks();
-
                 /* Call the NDArray callback */
                 asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
                      "%s:%s: calling NDArray callback\n", driverName, functionName);
