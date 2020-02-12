@@ -1,40 +1,18 @@
-.. container::
+=============
+ADPilatus
+=============
 
-   .. rubric:: areaDetector Pilatus driver
-      :name: areadetector-pilatus-driver
+:author: Mark Rivers (University of Chicago), John Hammonds, Brian Tieman (Argonne National Laboratory)
 
-   .. rubric:: January 21, 2018
-      :name: january-21-2018
-
-   .. rubric:: Mark Rivers
-      :name: mark-rivers
-
-   .. rubric:: University of Chicago
-      :name: university-of-chicago
-
-Table of Contents
------------------
-
--  `Introduction <#Introduction>`__
--  `Implementation of standard driver parameters <#StandardNotes>`__
--  `Pilatus specific parameters <#Driver_parameters>`__
--  `Configuration <#Configuration>`__
--  `MEDM screens <#MEDM_screens>`__
--  `Performance measurements <#Performance_measurements>`__
--  `Hardware notes <#Hardware_notes>`__
--  `Restrictions <#Restrictions>`__
-
-.. _Introduction:
+.. contents:: Contents
 
 Introduction
 ------------
-
-This is an `EPICS <http://www.aps.anl.gov/epics>`__
-`areaDetector <areaDetector.html>`__ driver for the Pilatus pixel array
+This is an :doc:`../index` driver for the Pilatus pixel array
 detectors from `Dectris <http://www.dectris.com>`__.
 
 The interface to the detector is via a TCP/IP socket interface to the
-**camserver** server that Dectris provides. The camserver program must
+``camserver`` server that Dectris provides. The camserver program must
 be started before the areaDetector software is started, typically by
 running the **camonly** script provided by Dectris.
 
@@ -53,17 +31,15 @@ plugins. However these plugins are currently limited to 256 character
 string attributes, so some of the information will be lost because the
 string is longer than 256 characters.
 
-This driver inherits from `ADDriver <areaDetectorDoc.html#ADDriver>`__.
-It implements many of the parameters in
-`asynNDArrayDriver.h <areaDetectorDoxygenHTML/asyn_n_d_array_driver_8h.html>`__
+This driver inherits from :doc:`../ADCore/ADDriver`.
+It implements nearly all of the parameters in
+`asynNDArrayDriver.h <../areaDetectorDoxygenHTML/asyn_n_d_array_driver_8h.html>`__
 and in
-`ADArrayDriver.h <areaDetectorDoxygenHTML/_a_d_driver_8h.html>`__. It
-also implements a number of parameters that are specific to the Pilatus
-detectors.The `pilatusDetector class
-documentation <areaDetectorDoxygenHTML/classpilatus_detector.html>`__
+`ADArrayDriver.h <../areaDetectorDoxygenHTML/_a_d_driver_8h.html>`__. It
+also implements a number of parameters that are specific to the
+Pilatus detectors. The `pilatusDetector class
+documentation <../areaDetectorDoxygenHTML/classpilatus_detector.html>`__
 describes this class in detail.
-
-.. _StandardNotes:
 
 Implementation of standard driver parameters
 --------------------------------------------
@@ -71,64 +47,79 @@ Implementation of standard driver parameters
 The following table describes how the Pilatus driver implements some of
 the standard driver parameters.
 
-**Parameter Definitions in pilatusDetector.cpp and EPICS Record
-Definitions in pilatus.template**
+.. |br| raw:: html
 
-.. list-table::
-   :widths: 25 25 180
-   :header-rows: 1
+    <br>
 
-   * - Parameter index variable
-     - EPICS record name
-     - Description
-   * - ADTriggerMode
-     - $(P)$(R)TriggerMode
-     - The driver redefines the choices for the ADTriggerMode parameter (record $(P)$(R)TriggerMode) from ADDriver.h. The choices for the Pilatus are:
-         - Internal (external signal not used)
-         - External Enable (count while external trigger line is high, readout on high to low transition)
-         - External Trigger (begin acquisition sequence on high to low transition of external trigger line)
-         - Multiple External Trigger (high to low transition on external signal triggers a single acquisition for the programmed exposure time)
-         - Alignment (collect images as fast as exposure time and readout permit, images written to a temporary file)
+.. cssclass:: table-bordered table-striped table-hover
+.. flat-table::
+  :header-rows: 2
+  :widths: 20 20 80
 
-         The first 4 modes correspond directly to the camserver commands Exposure, ExtEnable, ExtTrigger, and ExtMTrigger respectively. Alignment mode uses the Exposure command as well, but continuously takes images into the same temporary file (alignment.tif).
-   * - ADAcquireTime
-     -  $(P)$(R)AcquireTime
-     - Controls the acquisition time in all modes except External Enable. In External Enable mode the timing is controlled entirely by the external trigger line. However, even in ExternalEnable mode AcquireTime is used by camserver and by the driver to estimate how long the acquisition will take. Hardware timeouts will occur if the actual time to acquire differs significantly from the estimated time based on AcquireTime and AcquirePeriod.
-   * - ADNumImages
-     - $(P)$(R)NumImages
-     - Controls the number of images to acquire. It applies in all trigger modes except Alignment.
-   * -  ADAcquirePeriod
-     - $(P)$(R)AcquirePeriod
-     - Controls the exposure period in seconds in Internal or External Trigger modes when NumImages >1. In External Enable mode the timing is controlled entirely by the external trigger line. However, even in ExternalEnable mode AcquirePeriod is used by camserver and by the driver to estimate how long the acquisition will take. Hardware timeouts will occur if the actual time to acquire differs significantly from the estimated time based on AcquireTime and AcquirePeriod.
-   * -  ADNumExposures
-     - $(P)$(R)NumExposures
-     - Controls the number of exposures per image. It is most useful in External Enable mode, but it can be set in any mode.
-   * -  ADAcquire
-     - $(P)$(R)Acquire
-     - Controls the acquisition. Setting this to 1 starts image acquisition. The driver sets the record to 0 when acquisition is complete. This means an entire acquisition series if NImages >1. Setting this to 0 aborts an acquisition. If the driver was currently acquiring imges then this record will cause the "Stop" and "K" (Kill) commands to be sent to camserver.
-   * -  NDFilePath
-     - $(P)$(R)FilePath
-     - Controls the path for saving images. It must be a valid path for camserver and for the areaDetector driver, which is normally running in an EPICS IOC. If camserver and the EPICS IOC are not running on the same machine then soft links will typically be used to make the paths look identical.
-   * -  NDFileTemplate
-     - $(P)$(R)FileTemplate
-     - camserver uses the file extension to determine what format to save the files in. The areaDetector Pilatus driver only supports TIFF and CBF files, so the extension should be .tif or .cbf. When saving multiple images (NImages>1) camserver has its own rules for creating the names of the individual files. The rules are as follows. The name constructed using the algorithm described for NDFileTemplate under File Saving Parameters is used as a basename. The following examples show the interpretation of the basename.
-
-       Basename::
-
-         test6.tif           test6_00000.tif,  test6_00001.tif, ...
-         test6_.tif          test6_00000.tif,  test6_00001.tif, ...
-         test6_014.tif       test6_014.tif,    test6_015.tif, ...
-         test6_0008.tif      test6_0008.tif,   test6_0009.tif, ...
-
-       The numbers following the last '_' are taken as a format template, and as a start value. The minimum format is 3; there is no maximum; the default is 5. The format is also constrained by the requested number of images.
+  * - **Parameter Definitions in pilatusDetector.cpp and EPICS Record Definitions in pilatus.template**
+  * - Parameter index variable
+    - EPICS record name
+    - Description
+  * - ADTriggerMode
+    - $(P)$(R)TriggerMode
+    - The driver redefines the choices for the ADTriggerMode parameter (record $(P)$(R)TriggerMode) from ADDriver.h. The choices for the Pilatus are: |br|
+      ``Internal`` (external signal not used)  |br|
+      ``External Enable`` (count while external trigger line is high, readout on high to low transition) |br|
+      ``External Trigger`` (begin acquisition sequence on high to low transition of external trigger line) |br|
+      ``Multiple External Trigger`` (high to low transition on external signal triggers a single acquisition for the programmed exposure time) |br|
+      ``Alignment`` (collect images as fast as exposure time and readout permit, images written to a temporary file) |br|
+      The first 4 modes correspond directly to the camserver commands Exposure, ExtEnable, ExtTrigger, and ExtMTrigger respectively.
+      Alignment mode uses the Exposure command as well, but continuously takes images into the same temporary file (alignment.tif).
+  * - ADAcquireTime
+    - $(P)$(R)AcquireTime
+    - Controls the acquisition time in all modes except External Enable. In External Enable mode the timing is controlled entirely by the external trigger line. 
+      However, even in ExternalEnable mode AcquireTime is used by camserver and by the driver to estimate how long the acquisition will take. 
+      Hardware timeouts will occur if the actual time to acquire differs significantly from the estimated time based on AcquireTime and AcquirePeriod.
+  * - ADNumImages
+    - $(P)$(R)NumImages
+    - Controls the number of images to acquire. It applies in all trigger modes except Alignment.
+  * -  ADAcquirePeriod
+    - $(P)$(R)AcquirePeriod
+    - Controls the exposure period in seconds in Internal or External Trigger modes when NumImages >1. 
+      In External Enable mode the timing is controlled entirely by the external trigger line. 
+      However, even in ExternalEnable mode AcquirePeriod is used by camserver and by the driver to estimate how long the acquisition will take. 
+      Hardware timeouts will occur if the actual time to acquire differs significantly from the estimated time based on AcquireTime and AcquirePeriod.
+  * - ADNumExposures
+    - $(P)$(R)NumExposures
+    - Controls the number of exposures per image. It is most useful in External Enable mode, but it can be set in any mode.
+  * - ADAcquire
+    - $(P)$(R)Acquire
+    - Controls the acquisition. Setting this to 1 starts image acquisition. The driver sets the record to 0 when acquisition is complete. 
+      This means an entire acquisition series if NImages >1. Setting this to 0 aborts an acquisition. 
+      If the driver was currently acquiring imges then this record will cause the "Stop" and "K" (Kill) commands to be sent to camserver.
+  * - NDFilePath
+    - $(P)$(R)FilePath
+    - Controls the path for saving images. 
+      It must be a valid path for camserver and for the areaDetector driver, which is normally running in an EPICS IOC. 
+      If camserver and the EPICS IOC are not running on the same machine then soft links will typically be used to make the paths look identical.
+  * - NDFileTemplate
+    - $(P)$(R)FileTemplate
+    - camserver uses the file extension to determine what format to save the files in. 
+      The areaDetector Pilatus driver only supports TIFF and CBF files, so the extension should be .tif or .cbf. 
+      When saving multiple images (NImages>1) camserver has its own rules for creating the names of the individual files. The rules are as follows. 
+      The name constructed using the algorithm described for NDFileTemplate under File Saving Parameters is used as a basename. 
+      The following examples show the interpretation of the basename.
+ 
+ 
+        Basename::
+ 
+          test6.tif           test6_00000.tif,  test6_00001.tif, ...
+          test6_.tif          test6_00000.tif,  test6_00001.tif, ...
+          test6_014.tif       test6_014.tif,    test6_015.tif, ...
+          test6_0008.tif      test6_0008.tif,   test6_0009.tif, ...
+ 
+        The numbers following the last '_' are taken as a format template, and as a start value. The minimum format is 3; there is no maximum; the default is 5. The format is also constrained by the requested number of images.
 
 
 It is useful to load and enable an NDPluginStats plugin that gets its
 data from the Pilatus driver. The MaxValue_RBV PV for that plugin can be
 monitored to make sure that the 20-bit limit of 1,048,575 is not being
 approached in any pixel.
-
-.. _Driver_parameters:
 
 Pilatus specific parameters
 ---------------------------
@@ -139,417 +130,286 @@ width of this table the parameter index variable names have been split
 into 2 lines, but these are just a single name, for example
 ``PilatusDelayTime``.
 
-**Parameter Definitions in pilatusDetector.cpp and EPICS Record Definitions in pilatus.template**
+.. cssclass:: table-bordered table-striped table-hover
+.. flat-table::
+  :header-rows: 2
+  :widths: 70 10 10 10
 
-.. list-table::
-   :widths: 25 25 25 100 40 50 20
-   :header-rows: 1
-
-
-   * - Parameter index variable
-     - asyn interface
-     - Access
-     - Description
-     - drvInfo string
-     - EPICS record name
-     - EPICS record type
-   * - Pilatus DelayTime
-     - asynFloat64
-     - r/w
-     - Delay in seconds between the external trigger and the start of image acquisition. It only applies in External Trigger mode
-     - DELAY_TIME
-     - $(P)$(R)DelayTime
-     - ao
-   * - Pilatus Threshold
-     - asynFloat64
-     - r/w
-     - Threshold energy in keV. camserver uses this value to set the discriminators in each pixel. It is typically set to the incident x-ray energy ($(P)$(R)Energy), but sometimes other values may be preferable.
-     - THRESHOLD
-     - $(P)$(R)ThresholdEnergy
-       $(P)$(R)ThresholdEnergy_RBV
-     - ao
-       ai
-   * - Pilatus ThresholdApply
-     - asynInt32
-     - r/w
-     - Apply the threshold value. Setting the threshold can be a time consuming operation, so if ThresholdAutoApply is No then ThresholdApply must be processed to actually send the threshold to camserver.
-     - THRESHOLD_APPLY
-     - $(P)$(R)ThresholdAppply
-     - busy
-   * - Pilatus ThresholdApply
-     - asynInt32
-     - r/w
-     - Apply the threshold value. Setting the threshold can be a time consuming operation, so if ThresholdAutoApply is No then ThresholdApply must be processed to actually send the threshold to camserver.
-     - THRESHOLD_APPLY
-     - $(P)$(R)ThresholdApply
-     - busy
-   * - Pilatus ThresholdAutoApply
-     - asynInt32
-     - r/w
-     - Automatically apply the threshold value whenever it changes. Setting the threshold can be a time consuming operation, so if ThresholdAutoApply is No then ThresholdApply must be processed to actually send the threshold to camserver. If it is Yes then the threshold value will be sent to camserver whenever it is changed.
-     - THRESHOLD_AUTO_APPLY
-     - $(P)$(R)ThresholdAutoApply
-       $(P)$(R)ThresholdAutoApply_RBV
-     - bo
-       bi
-   * - Pilatus Energy
-     - asynFloat64
-     - r/w
-     - X-ray energy in keV. This is used by camserver to calculate the proper flat field corrrection. If Energy is 0 then the energy value sent to camserver is ThresholdEnergy*2.
-     - ENERGY
-     - $(P)$(R)Energy
-       $(P)$(R)Energy_RBV
-     - ao
-       ai
-   * - Pilatus GapFill
-     - asynInt32
-     - r/w
-     - The value that camserver should write to the data file for the gaps between pixels in the detector. Choices are -2, 0, and -1.
-     - GAP_FILL
-     - $(P)$(R)GapFill
-       $(P)$(R)GapFill_RBV
-     - mbbo
-       mbbi
-   * - N/A
-     - N/A
-     - r/w
-     - Gain menu. Controls the value of Vrf, which determines the shaping time and gain of the input amplifiers. The allowed values are:
-         -  0 ("Fast/Low") Fastest shaping time (~125ns) and lowest gain.
-         -  1 ("Medium/Medium") Medium shaping time (~200 ns) and medium gain.
-         -  2 ("Slow/High") Slow shaping time (~400 ns) and high gain.
-         -  3 ("Slow/Ultrahigh") Slowest peaking time (? ns) and highest gain.
-
-        This is only used on older Pilatus detectors, not the newer ones.
-     - N/A
-     - $(P)$(R)GainMenu
-     - mbbo
-   * - Pilatus Armed
-     - asynInt32
-     - r/o
-     - Flag to indicate when the Pilatus is ready to accept external trigger signals (0=not ready, 1=ready). This should be used by clients to indicate when it is OK to start sending trigger pulses to the Pilatus. If pulses are send before Armed=1 then the Pilatus may miss them, leading to DMA timeout errors from camserver
-     - ARMED
-     - $(P)$(R)Armed
-     - bi
-   * - Pilatus ResetPower
-     - asynInt32
-     - r/w
-     - Processing this record sends the "ResetModulePower delayTime" command to camserver. This cycles the high voltage and other detector supply voltages. This is particularly useful with the CdTe detectors when they have been exposed to a very strong signal. Cycling the power can erase the memory effects of oversaturation. The delayTime controls the amount of time to wait after turning off the power before turning it back on again. It is set by the ResetPowerTime record.
-     - RESET_POWER
-     - $(P)$(R)ResetPower
-     - bo
-   * - Pilatus ResetPowerTime
-     - asynInt32
-     - r/w
-     - This record controls the number of seconds to wait after turning off the power before turning it back on again when the ResetPower record is processed.
-     - RESET_POWER_TIME
-     - $(P)$(R)ResetPower
-       $(P)$(R)ResetPower_RBV
-     - bo
-       bi
-   * - PilatusImage FileTmot
-     - asynFloat64
-     - r/w
-     - Timeout in seconds when reading a TIFF or CBF file. It should be set to several seconds, because there can be delays for various reasons. One reason is that there is sometimes a delay between when an External Enable acquisition is started and when the first external pulse occurs. Another is that it can take some time for camserver processes to finish writing the files.
-     - IMAGE_FILE_TMOT
-     - $(P)$(R)ImageFileTmot
-     - ao
-   * - Pilatus BadPixelFile
-     - asynOctet
-     - r/w
-     - Name of a file to be used to replace bad pixels. If this record does not point to a valid bad pixel file then no bad pixel mapping is performed. The bad pixel map is used before making the NDArray callbacks. It does not modify the data in the files that camserver writes. This is a simple ASCII file with the following format:
-       ::
-
-         badX1,badY1 replacementX1,replacementY1
-         badX2,badY2 replacementX2,replacementY2
-         ...
-
-       The X and Y coordinates range from 0 to NXPixels-1 and NYPixels-1. Up to 100 bad pixels can be defined. The bad pixel mapping simply replaces the bad pixels with another pixel's value. It does not do any averaging. It is felt that this is sufficient for the purpose for which this driver was written, namely fast on-line viewing of ROIs and image data. More sophisticated algorithms can be used for offline analysis of the image files themselves. The following is an example bad pixel file for a GSECARS detector:
-       ::
-
-         263,3   262,3
-         264,3   266,3
-         263,3   266,3
-         300,85  299,85
-         300,86  299,86
-         471,129 472,129
-
-     - BAD_PIXEL_FILE
-     - $(P)$(R)BadPixelFile
-     - waveform
-   * - Pilatus NumBadPixels
-     - asynInt32
-     - r/o
-     - The number of bad pixels defined in the bad pixel file. Useful for seeing if the bad pixel file was read correctly.
-     - NUM_BAD_PIXELS
-     - $(P)$(R)NumBadPixels
-     - longin
-   * - Pilatus FlatFieldFile
-     - asynOctet
-     - r/w
-     - Name of a file to be used to correct for the flat field. If this record does not point to a valid flat field file then no flat field correction is performed. The flat field file is simply a TIFF or CBF file collected by the Pilatus that is used to correct for spatial non-uniformity in the response of the detector. It should be collected with a spatially uniform intensity on the detector at roughly the same energy as the measurements being corrected. When the flat field file is read, the average pixel value (averageFlatField) is computed using all pixels with intensities > PilatusMinFlatField. All pixels with intensity <PilatusMinFlatField in the flat field are replaced with averageFlatField. When images are collected before the NDArray callbacks are performed the following per-pixel correction is applied:
-       ::
-
-         ImageData[i] =
-         (averageFlatField *
-         ImageData[i])/flatField[i];
-
-     - FLAT_FIELD_FILE
-     - $(P)$(R)FlatFieldFile
-     - waveform
-   * - Pilatus MinFlatField
-     - asynInt32
-     - r/w
-     - The mimimum valid intensity in the flat field. This value must be set > 0 to prevent divide by 0 errors. If the flat field was collected with some pixels having very low intensity then this value can be used to replace those pixels with the average response.
-     - MIN_FLAT_FIELD
-     - $(P)$(R)MinFlatField
-     - longout
-   * - Pilatus FlatFieldValid
-     - asynInt32
-     - r/o
-     - This record indicates if a valid flat field file has been read. 0=No, 1=Yes.
-     - FLAT_FIELD_VALID
-     - $(P)$(R)FlatFieldValid
-     - bi
-   * - Pilatus Wavelength
-     - asynFloat64
-     - r/w
-     - MX wavelength to write to CBF and TIFF image header.
-     - WAVELENGTH
-     - $(P)$(R)Wavelength
-     - ao
-   * - Pilatus EnergyLow
-     - asynFloat64
-     - r/w
-     - MX energy range low value to write to CBF and TIFF image header.
-     - ENERGY_LOW
-     - $(P)$(R)EnergyLow
-     - ao
-   * - Pilatus EnergyHigh
-     - asynFloat64
-     - r/w
-     - MX energy range high value to write to CBF and TIFF image header.
-     - ENERGY_HIGH
-     - $(P)$(R)EnergyHigh
-     - ao
-   * - Pilatus DetDist
-     - asynFloat64
-     - r/w
-     - MX detector distance to write to CBF and TIFF image header.
-     - DET_DIST
-     - $(P)$(R)DetDist
-     - ao
-   * - Pilatus DetVOffset
-     - asynFloat64
-     - r/w
-     - MX detector vertical offset to write to CBF and TIFF image header.
-     - DET_VOFFSET
-     - $(P)$(R)DetVOffset
-     - ao
-   * - Pilatus BeamX
-     - asynFloat64
-     - r/w
-     - MX beam X to write to CBF and TIFF image header.
-     - BEAM_X
-     - $(P)$(R)BeamX
-     - ao
-   * - Pilatus BeamY
-     - asynFloat64
-     - r/w
-     - MX beam Y to write to CBF and TIFF image header.
-     - BEAM_Y
-     - $(P)$(R)BeamY
-     - ao
-   * - Pilatus Flux
-     - asynFloat64
-     - r/w
-     - MX flux to write to CBF and TIFF image header.
-     - FLUX
-     - $(P)$(R)Flux
-     - ao
-   * - Pilatus FilterTransm
-     - asynFloat64
-     - r/w
-     - MX filter transmission to write to CBF and TIFF image header.
-     - FILTER_TRANSM
-     - $(P)$(R)FilterTransm
-     - ao
-   * - Pilatus StartAngle
-     - asynFloat64
-     - r/w
-     - MX start angle to write to CBF and TIFF image header. When saving multiple images (ADNumImages>1) camserver will automatically increment the field in the image header by PilatusAngleIncr for each image.
-     - START_ANGLE
-     - $(P)$(R)StartAngle
-     - ao
-   * - Pilatus AngleIncr
-     - asynFloat64
-     - r/w
-     - MX angle increment to write to CBF and TIFF image header. When saving multiple images (ADNumImages>1) camserver will automatically increment the field corresponding to PilatusStartAngle in the image header by this value for each image.
-     - ANGLE_INCR
-     - $(P)$(R)AngleIncr
-     - ao
-   * - Pilatus Det2theta
-     - asynFloat64
-     - r/w
-     - MX detector 2theta to write to CBF and TIFF image header.
-     - DET_2THETA
-     - $(P)$(R)Det2theta
-     - ao
-   * - Pilatus Polarization
-     - asynFloat64
-     - r/w
-     - MX polarization to write to CBF and TIFF image header.
-     - POLARIZATION
-     - $(P)$(R)Polarization
-     - ao
-   * - Pilatus Alpha
-     - asynFloat64
-     - r/w
-     - MX alpha to write to CBF and TIFF image header.
-     - ALPHA
-     - $(P)$(R)Alpha
-     - ao
-   * - Pilatus Kappa
-     - asynFloat64
-     - r/w
-     - MX kappa to write to CBF and TIFF image header.
-     - KAPPA
-     - $(P)$(R)Kappa
-     - ao
-   * - Pilatus Phi
-     - asynFloat64
-     - r/w
-     - MX phi to write to CBF and TIFF image header.
-     - PHI
-     - $(P)$(R)Phi
-     - ao
-   * - Pilatus PhiIncr
-     - asynFloat64
-     - r/w
-     - MX phi increment to write to CBF and TIFF image header
-     - PHI_INCR
-     - $(P)$(R)PhiIncr
-     - ao
-   * - Pilatus Chi
-     - asynFloat64
-     - r/w
-     - MX chi to write to CBF and TIFF image header.
-     - CHI
-     - $(P)$(R)Chi
-     - ao
-   * - Pilatus ChiIncr
-     - asynFloat64
-     - r/w
-     - MX chi increment to write to CBF and TIFF image header
-     - CHI_INCR
-     - $(P)$(R)ChiIncr
-     - ao
-   * - Pilatus Omega
-     - asynFloat64
-     - r/w
-     - MX omega to write to CBF and TIFF image header.
-     - OMEGA
-     - $(P)$(R)Omega
-     - ao
-   * - Pilatus OmegaIncr
-     - asynFloat64
-     - r/w
-     - MX omega increment to write to CBF and TIFF image header
-     - OMEGA_INCR
-     - $(P)$(R)OmegaIncr
-     - ao
-   * - Pilatus OscillAxis
-     - asynOctet
-     - r/w
-     - MX oscillation axis text, up to 18 characters in length, to write to CBF and TIFF image header.
-     - OSCILL_AXIS
-     - $(P)$(R)OscillAxis
-     - stringout
-   * - Pilatus NumOscill
-     - asynInt32
-     - r/w
-     - MX number of oscillations to write to CBF and TIFF image header.
-     - NUM_OSCILL
-     - $(P)$(R)NumOscill
-     - longout
-   * - Pilatus CbfTemplateFile
-     - asynOctet
-     - r/w
-     - Template file to be used to obtain all of the MX parameters above. Set the name of this file to "0" to disable the template file.
-     - CBFTEMPLATEFILE
-     - $(P)$(R)CbfTemplateFile
-     - waveform
-   * - Pilatus HeaderString
-     - asynOctet
-     - r/w
-     - Header string to write in the COMMENT field of the CBF file.
-     - HEADERSTRING
-     - $(P)$(R)HeaderString
-     - waveform
-   * - Pilatus PixelCutoff
-     - asynInt32
-     - r/o
-     - Maximum possible count rate per pixel.
-     - PIXEL_CUTOFF
-     - $(P)$(R)PixelCutOff_RBV
-     - ai
-   * - Pilatus ThTemp0
-     - asynFloat64
-     - r/o
-     - Temperature readout 0.
-     - TH_TEMP_0
-     - $(P)$(R)Temp0_RBV
-     - ai
-   * - Pilatus ThTemp1
-     - asynFloat64
-     - r/o
-     - Temperature readout 1.
-     - TH_TEMP_1
-     - $(P)$(R)Temp1_RBV
-     - ai
-   * - Pilatus ThTemp2
-     - asynFloat64
-     - r/o
-     - Temperature readout 2.
-     - TH_TEMP_2
-     - $(P)$(R)Temp2_RBV
-     - ai
-   * -  Pilatus ThHumid0
-     - asynFloat64
-     - r/o
-     - Humidity readout 0.
-     - TH_HUMID_0
-     - $(P)$(R)Humid0_RBV
-     - ai
-   * - Pilatus ThHumid1
-     - asynFloat64
-     - r/o
-     - Humidity readout 1.
-     - TH_HUMID_1
-     - $(P)$(R)Humid1_RBV
-     - ai
-   * - Pilatus ThHumid2
-     - asynFloat64
-     - r/o
-     - Humidity readout 2.
-     - TH_HUMID_2
-     - $(P)$(R)Humid2_RBV
-     - ai
-   * - Pilatus TvxVersion
-     - asynOctet
-     - r/o
-     - Version of TVX and camserver. This record is redundant with the SDKVersion_RBV record added in ADCore R2-6, which should be used instead.
-     - TVXVERSION
-     - $(P)$(R)TVXVersion_RBV
-     - stringin
-   * - N/A
-     - N/A
-     - N/A
-     - asyn record to control debugging communication with camserver. Setting the CNCT field in this record to ``Disconnect`` causes the drvAsynIPPort server to disconnect from camserver. This can be used to allow another program, such as TVX, to temporarily take control of camserver, without restarting the EPICS IOC. Set CNCT to ``Connect`` to reconnect the IOC to camserver, or simply process any record which communicates with camserver, because the driver will automatically reconnect.
-     - N/A
-     - $(P)$(R)CamserverAsyn
-     - asyn
-
-.. _Configuration:
+  * - *Parameter Definitions in pilatusDetector.cpp and EPICS Record Definitions in pilatus.template**
+  * - Description
+    - drvInfo string
+    - EPICS record name
+    - EPICS record type
+  * - Delay in seconds between the external trigger and the start of image acquisition. It only applies in External Trigger mode
+    - DELAY_TIME
+    - $(P)$(R)DelayTime
+    - ao
+  * - Threshold energy in keV. camserver uses this value to set the discriminators in each pixel. 
+      It is typically set to the incident x-ray energy ($(P)$(R)Energy), but sometimes other values may be preferable.
+    - THRESHOLD
+    - $(P)$(R)ThresholdEnergy, $(P)$(R)ThresholdEnergy_RBV
+    - ao, ai
+  * - Apply the threshold value. 
+      Setting the threshold can be a time consuming operation, so if ThresholdAutoApply is No then ThresholdApply must be processed to actually send the threshold to camserver.
+    - THRESHOLD_APPLY
+    - $(P)$(R)ThresholdApply
+    - busy
+  * - Apply the threshold value. 
+      Setting the threshold can be a time consuming operation, so if ThresholdAutoApply is No then ThresholdApply must be processed to actually send the threshold to camserver.
+    - THRESHOLD_APPLY
+    - $(P)$(R)ThresholdApply
+    - busy
+  * - Automatically apply the threshold value whenever it changes. 
+      Setting the threshold can be a time consuming operation, so if ThresholdAutoApply is No then ThresholdApply must be processed to actually send the threshold to camserver. 
+      If it is Yes then the threshold value will be sent to camserver whenever it is changed.
+    - THRESHOLD_AUTO_APPLY
+    - $(P)$(R)ThresholdAutoApply, $(P)$(R)ThresholdAutoApply_RBV
+    - bo, bi
+  * - X-ray energy in keV. This is used by camserver to calculate the proper flat field corrrection. 
+      If Energy is 0 then the energy value sent to camserver is ThresholdEnergy*2.
+    - ENERGY
+    - $(P)$(R)Energy, $(P)$(R)Energy_RBV
+    - ao, ai
+  * - The value that camserver should write to the data file for the gaps between pixels in the detector. Choices are -2, 0, and -1.
+    - GAP_FILL
+    - $(P)$(R)GapFill, $(P)$(R)GapFill_RBV
+    - mbbo, mbbi
+  * - Gain menu. Controls the value of Vrf, which determines the shaping time and gain of the input amplifiers. The allowed values are: |br|
+        -  ``Fast/Low`` Fastest shaping time (~125ns) and lowest gain. |br|
+        -  ``Medium/Medium`` Medium shaping time (~200 ns) and medium gain. |br|
+        -  ``Slow/High`` Slow shaping time (~400 ns) and high gain. |br|
+        -  ``Slow/Ultrahigh`` Slowest peaking time (? ns) and highest gain. |br|
+ 
+      This is only used on older Pilatus detectors, not the newer ones.
+    - N/A
+    - $(P)$(R)GainMenu
+    - mbbo
+  * - Flag to indicate when the Pilatus is ready to accept external trigger signals (0=not ready, 1=ready). This should be used by clients to indicate when it is OK to start sending trigger pulses to the Pilatus. If pulses are send before Armed=1 then the Pilatus may miss them, leading to DMA timeout errors from camserver
+    - ARMED
+    - $(P)$(R)Armed
+    - bi
+  * - Processing this record sends the "ResetModulePower delayTime" command to camserver. 
+      This cycles the high voltage and other detector supply voltages. 
+      This is particularly useful with the CdTe detectors when they have been exposed to a very strong signal. 
+      Cycling the power can erase the memory effects of oversaturation. 
+      The delayTime controls the amount of time to wait after turning off the power before turning it back on again. 
+      It is set by the ResetPowerTime record.
+    - RESET_POWER
+    - $(P)$(R)ResetPower
+    - bo
+  * - This record controls the number of seconds to wait after turning off the power before turning it back on again when the ResetPower record is processed.
+    - RESET_POWER_TIME
+    - $(P)$(R)ResetPower, $(P)$(R)ResetPower_RBV
+    - bo, bi
+  * - Timeout in seconds when reading a TIFF or CBF file. 
+      It should be set to several seconds, because there can be delays for various reasons. 
+      One reason is that there is sometimes a delay between when an External Enable acquisition is started and when the first external pulse occurs. 
+      Another is that it can take some time for camserver processes to finish writing the files.
+    - IMAGE_FILE_TMOT
+    - $(P)$(R)ImageFileTmot
+    - ao
+  * - Name of a file to be used to replace bad pixels. 
+      If this record does not point to a valid bad pixel file then no bad pixel mapping is performed. 
+      The bad pixel map is used before making the NDArray callbacks. It does not modify the data in the files that camserver writes. 
+      This is a simple ASCII file with the following format:
+      ::
+ 
+        badX1,badY1 replacementX1,replacementY1
+        badX2,badY2 replacementX2,replacementY2
+        ...
+ 
+      The X and Y coordinates range from 0 to NXPixels-1 and NYPixels-1. 
+      Up to 100 bad pixels can be defined. 
+      The bad pixel mapping simply replaces the bad pixels with another pixel's value. 
+      It does not do any averaging. 
+      It is felt that this is sufficient for the purpose for which this driver was written, namely fast on-line viewing of ROIs and image data. 
+      More sophisticated algorithms can be used for offline analysis of the image files themselves. 
+      The following is an example bad pixel file for a GSECARS detector:
+      ::
+ 
+        263,3   262,3
+        264,3   266,3
+        263,3   266,3
+        300,85  299,85
+        300,86  299,86
+        471,129 472,129
+ 
+    - BAD_PIXEL_FILE
+    - $(P)$(R)BadPixelFile
+    - waveform
+  * - The number of bad pixels defined in the bad pixel file. Useful for seeing if the bad pixel file was read correctly.
+    - NUM_BAD_PIXELS
+    - $(P)$(R)NumBadPixels
+    - longin
+  * - Name of a file to be used to correct for the flat field. 
+      If this record does not point to a valid flat field file then no flat field correction is performed. 
+      The flat field file is simply a TIFF or CBF file collected by the Pilatus that is used to correct for spatial non-uniformity in the response of the detector. 
+      It should be collected with a spatially uniform intensity on the detector at roughly the same energy as the measurements being corrected. 
+      When the flat field file is read, the average pixel value (averageFlatField) is computed using all pixels with intensities > PilatusMinFlatField. 
+      All pixels with intensity <PilatusMinFlatField in the flat field are replaced with averageFlatField. 
+      When images are collected before the NDArray callbacks are performed the following per-pixel correction is applied:
+      ::
+ 
+        ImageData[i] =
+        (averageFlatField *
+        ImageData[i])/flatField[i];
+ 
+    - FLAT_FIELD_FILE
+    - $(P)$(R)FlatFieldFile
+    - waveform
+  * - The mimimum valid intensity in the flat field. 
+      This value must be set > 0 to prevent divide by 0 errors. 
+      If the flat field was collected with some pixels having very low intensity then this value can be used to replace those pixels with the average response.
+    - MIN_FLAT_FIELD
+    - $(P)$(R)MinFlatField
+    - longout
+  * - This record indicates if a valid flat field file has been read. 0=No, 1=Yes.
+    - FLAT_FIELD_VALID
+    - $(P)$(R)FlatFieldValid
+    - bi
+  * - MX wavelength to write to CBF and TIFF image header.
+    - WAVELENGTH
+    - $(P)$(R)Wavelength
+    - ao
+  * - MX energy range low value to write to CBF and TIFF image header.
+    - ENERGY_LOW
+    - $(P)$(R)EnergyLow
+    - ao
+  * - MX energy range high value to write to CBF and TIFF image header.
+    - ENERGY_HIGH
+    - $(P)$(R)EnergyHigh
+    - ao
+  * - MX detector distance to write to CBF and TIFF image header.
+    - DET_DIST
+    - $(P)$(R)DetDist
+    - ao
+  * - MX detector vertical offset to write to CBF and TIFF image header.
+    - DET_VOFFSET
+    - $(P)$(R)DetVOffset
+    - ao
+  * - MX beam X to write to CBF and TIFF image header.
+    - BEAM_X
+    - $(P)$(R)BeamX
+    - ao
+  * - MX beam Y to write to CBF and TIFF image header.
+    - BEAM_Y
+    - $(P)$(R)BeamY
+    - ao
+  * - MX flux to write to CBF and TIFF image header.
+    - FLUX
+    - $(P)$(R)Flux
+    - ao
+  * - MX filter transmission to write to CBF and TIFF image header.
+    - FILTER_TRANSM
+    - $(P)$(R)FilterTransm
+    - ao
+  * - MX start angle to write to CBF and TIFF image header. 
+      When saving multiple images (ADNumImages>1) camserver will automatically increment the field in the image header by PilatusAngleIncr for each image.
+    - START_ANGLE
+    - $(P)$(R)StartAngle
+    - ao
+  * - MX angle increment to write to CBF and TIFF image header. 
+      When saving multiple images (ADNumImages>1) camserver will automatically increment the field corresponding to PilatusStartAngle 
+      in the image header by this value for each image.
+    - ANGLE_INCR
+    - $(P)$(R)AngleIncr
+    - ao
+  * - MX detector 2theta to write to CBF and TIFF image header.
+    - DET_2THETA
+    - $(P)$(R)Det2theta
+    - ao
+  * - MX polarization to write to CBF and TIFF image header.
+    - POLARIZATION
+    - $(P)$(R)Polarization
+    - ao
+  * - MX alpha to write to CBF and TIFF image header.
+    - ALPHA
+    - $(P)$(R)Alpha
+    - ao
+  * - MX kappa to write to CBF and TIFF image header.
+    - KAPPA
+    - $(P)$(R)Kappa
+    - ao
+  * - MX phi to write to CBF and TIFF image header.
+    - PHI
+    - $(P)$(R)Phi
+    - ao
+  * - MX phi increment to write to CBF and TIFF image header
+    - PHI_INCR
+    - $(P)$(R)PhiIncr
+    - ao
+  * - MX chi to write to CBF and TIFF image header.
+    - CHI
+    - $(P)$(R)Chi
+    - ao
+  * - MX chi increment to write to CBF and TIFF image header
+    - CHI_INCR
+    - $(P)$(R)ChiIncr
+    - ao
+  * - MX omega to write to CBF and TIFF image header.
+    - OMEGA
+    - $(P)$(R)Omega
+    - ao
+  * - MX omega increment to write to CBF and TIFF image header
+    - OMEGA_INCR
+    - $(P)$(R)OmegaIncr
+    - ao
+  * - MX oscillation axis text, up to 18 characters in length, to write to CBF and TIFF image header.
+    - OSCILL_AXIS
+    - $(P)$(R)OscillAxis
+    - stringout
+  * - MX number of oscillations to write to CBF and TIFF image header.
+    - NUM_OSCILL
+    - $(P)$(R)NumOscill
+    - longout
+  * - Template file to be used to obtain all of the MX parameters above. Set the name of this file to "0" to disable the template file.
+    - CBFTEMPLATEFILE
+    - $(P)$(R)CbfTemplateFile
+    - waveform
+  * - Header string to write in the COMMENT field of the CBF file.
+    - HEADERSTRING
+    - $(P)$(R)HeaderString
+    - waveform
+  * - Maximum possible count rate per pixel.
+    - PIXEL_CUTOFF
+    - $(P)$(R)PixelCutOff_RBV
+    - ai
+  * - Temperature readout 0.
+    - TH_TEMP_0
+    - $(P)$(R)Temp0_RBV
+    - ai
+  * - Temperature readout 1.
+    - TH_TEMP_1
+    - $(P)$(R)Temp1_RBV
+    - ai
+  * - Temperature readout 2.
+    - TH_TEMP_2
+    - $(P)$(R)Temp2_RBV
+    - ai
+  * - Humidity readout 0.
+    - TH_HUMID_0
+    - $(P)$(R)Humid0_RBV
+    - ai
+  * - Humidity readout 1.
+    - TH_HUMID_1
+    - $(P)$(R)Humid1_RBV
+    - ai
+  * - Humidity readout 2.
+    - TH_HUMID_2
+    - $(P)$(R)Humid2_RBV
+    - ai
+  * - Version of TVX and camserver. This record is redundant with the SDKVersion_RBV record added in ADCore R2-6, which should be used instead.
+    - TVXVERSION
+    - $(P)$(R)TVXVersion_RBV
+    - stringin
+  * - asyn record to control debugging communication with camserver. 
+      Setting the CNCT field in this record to ``Disconnect`` causes the drvAsynIPPort server to disconnect from camserver. 
+      This can be used to allow another program, such as TVX, to temporarily take control of camserver, without restarting the EPICS IOC. 
+      Set CNCT to ``Connect`` to reconnect the IOC to camserver, or simply process any record which communicates with camserver, 
+      because the driver will automatically reconnect.
+    - N/A
+    - $(P)$(R)CamserverAsyn
+    - asyn
 
 Configuration
 -------------
@@ -567,14 +427,17 @@ command, either from C/C++ or from the EPICS IOC shell.
 
 For details on the meaning of the parameters to this function refer to
 the detailed documentation on the pilatusDetectorConfig function in the
-`pilatusDetector.cpp
-documentation <areaDetectorDoxygenHTML/pilatus_detector_8cpp.html>`__
-and in the documentation for the constructor for the `pilatusDetector
-class <areaDetectorDoxygenHTML/classpilatus_detector.html>`__.
+`pilatusDetector.cpp documentation <areaDetectorDoxygenHTML/pilatus_detector_8cpp.html>`__
+and in the documentation for the constructor for the 
+`pilatusDetector class <areaDetectorDoxygenHTML/classpilatus_detector.html>`__.
 
-There an example IOC boot directory and startup script
-(`iocBoot/iocPilatus/st.cmd) <pilatus_st_cmd.html>`__ provided with
-areaDetector.
+Example st.cmd startup file
+---------------------------
+The following startup script is provided with ADPilatus.
+
+.. literalinclude:: ../../../ADPilatus/iocs/pilatusIOC/iocBoot/iocPilatus/st.cmd
+
+
 
 .. _MEDM_screens:
 
@@ -588,51 +451,34 @@ but it exposes many controls that are not applicable to the Pilatus.
 ``pilatusDetector.adl`` is the main screen used to control the Pilatus
 driver.
 
-.. container::
+.. figure:: pilatusDetector.png
+    :align: center
 
-   .. rubric:: pilatusDetector.adl
-      :name: pilatusdetector.adl
-
-   |pilatusDetector.png|
 
 ``pilatusAncillary.adl`` is the screen used to control define the
 metadata that will be written to the Pilatus data file.
 
-.. container::
-
-   .. rubric:: pilatusAncillary.adl
-      :name: pilatusancillary.adl
-
-   |pilatusAncillary.png|
+.. figure:: pilatusAncillary.png
+    :align: center
 
 ``NDROI4.adl`` is used to define the ROIs. In this example there are 3
 valid ROIs defined. ROI 1 is the entire detector, ROI 2 is a 300x50
 rectangle starting at [100,60], and ROI 3 is a 50x30 rectangle starting
 at [220,70].
 
-.. container::
-
-   .. rubric:: NDROI4.adl
-      :name: ndroi4.adl
-
-   |pilatusROI4.png|
+.. figure:: pilatusROI4.png
+    :align: center
 
 ``NDStats5.adl`` is used to display the statistics in the ROIs defined
 above.
 
-.. container::
-
-   .. rubric:: NDStats5.adl
-      :name: ndstats5.adl
-
-   |pilatusStats5.png|
+.. figure:: pilatusStats5.png
+    :align: center
 
 ``mca.adl or mca_small.adl`` can be used to plot the net or total counts
 in an ROI when NImages>1. In this example the plot is the net counts in
 ROI 1 as the diffractometer chi was scanned +- 1 degree with 1000 points
-at .02 seconds/point. This was done with the SPEC command
-
-::
+at .02 seconds/point. This was done with the SPEC command::
 
    lup chi -1 1 1000 .02
 
@@ -643,23 +489,15 @@ Pilatus driver read each TIFF file as it was created and updated this
 plot every 0.2 seconds. The total time to collect this scan with 1000
 images was 20.8 seconds.
 
-.. container::
-
-   .. rubric:: mca_small.adl
-      :name: mca_small.adl
-
-   |pilatusMCA.png|
+.. figure:: pilatusMCA.png
+    :align: center
 
 ``scan_more.adl`` is used to define a scan. In this example the sscan
 record is set up to scan the ThresholdEnergy PV and to collect the total
 counts in ROI2, which was defined to include the entire detector.
 
-.. container::
-
-   .. rubric:: scan_more.adl
-      :name: scan_more.adl
-
-   |pilatusThresholdScanSetup.png|
+.. figure:: pilatusThresholdScanSetup.png
+    :align: center
 
 ``scanDetPlot.adl`` is used to plot the results of a scan after it is
 complete. In this example the total counts in ROI 1 are plotted as a
@@ -667,35 +505,21 @@ function of the ThresholdEnergy as it was scanned from 3000 to 10000 eV
 in 250 eV steps. The source was Fe55, and the cut-off is at 6 keV, as
 expected for the Mn Ka and Mn Kb x-rays that this source produces.
 
-.. container::
-
-   .. rubric:: scanDetPlot.adl
-      :name: scandetplot.adl
-
-   |pilatusThresholdScanPlot.png|
+.. figure:: pilatusThresholdScanPlot.png
+    :align: center
 
 ``asynRecord.adl`` is used to control the debugging information printed
 by the asyn TCP/IP driver for camserver (asynTraceIODriver).
 
-.. container::
-
-   .. rubric:: asynRecord.adl
-      :name: asynrecord.adl
-
-   |pilatusAsyn.png|
+.. figure:: pilatusAsyn.png
+    :align: center
 
 ``asynOctet.adl`` can be used to send any command to camserver and
 display the response. It can be loaded from the More menu in
 asynRecord.adl above.
 
-.. container::
-
-   .. rubric:: asynOctet.adl
-      :name: asynoctet.adl
-
-   |pilatusAsynOctet.png|
-
-.. _SPEC_interface:
+.. figure:: pilatusAsynOctet.png
+    :align: center
 
 SPEC interface
 --------------
@@ -707,9 +531,7 @@ Pilatus detector as a SPEC counter. This works in both traditional
 step-scanning mode, as well as in `trajectory
 scanning <https://cars.uchicago.edu/software/epics/trajectoryScan.html>`__
 mode. Here are some snippets from the SPEC macros for the Pilatus. We
-can supply the source files on request.
-
-::
+can supply the source files on request.::
 
      # need some more globals (kludge)
    global    PILATUS_ROI_PV
@@ -839,8 +661,6 @@ can supply the source files on request.
            S[iroi] = 0
            S[iroi] = epics_get(PILATUS_ROI_PV)
 
-.. _Performance_measurements:
-
 Performance measurements
 ------------------------
 
@@ -877,9 +697,7 @@ can be obtained with the areaDetector Pilatus driver.
    collect 1000 points using `trajectory
    scanning <https://cars.uchicago.edu/software/epics/trajectoryScan.html>`__
    mode with the Newport XPS motor controller. The following SPEC
-   command was used:
-
-   ::
+   command was used:::
 
             lup chi -1 1 1000 .02
 
@@ -902,13 +720,8 @@ can be obtained with the areaDetector Pilatus driver.
    images. As soon as the acquisition was complete SPEC plotted the net
    counts in the first ROI (containing the Bragg peak) as follows:
 
-   .. container::
-
-      .. rubric:: 1000 point SPEC scan with 20 ms per point collected in
-         20.8 seconds
-         :name: point-spec-scan-with-20-ms-per-point-collected-in-20.8-seconds
-
-      |pilatusSPEC.png|
+   .. figure:: pilatusSPEC.png
+     :align: center
 
    For comparison this identical scan was executed in traditional
    step-scanning mode, where the motors stopped at each point in the
@@ -918,8 +731,6 @@ can be obtained with the areaDetector Pilatus driver.
    the settling time for the motors, with only a small fraction due to
    the Pilatus single-exposure mode. The trajectory scanning mode is
    thus more than 50 times faster to execute the identical SPEC scan.
-
-.. _Hardware_notes:
 
 Hardware notes
 --------------
@@ -1008,8 +819,6 @@ Dectris has since informed me that they have increased the power supply
 voltage on all new Pilatus systems, so this should no longer be an
 issue.
 
-.. _Restrictions:
-
 Restrictions
 ------------
 
@@ -1064,14 +873,3 @@ driver:
    -  FILE_READ_DELAY=.01 seconds. The time between polling to see if
       the image file exists or if it is the expected size.
    -  MAX_BAD_PIXELS=100 The maximum number of bad pixels.
-
-.. |pilatusDetector.png| image:: pilatusDetector.png
-.. |pilatusAncillary.png| image:: pilatusAncillary.png
-.. |pilatusROI4.png| image:: pilatusROI4.png
-.. |pilatusStats5.png| image:: pilatusStats5.png
-.. |pilatusMCA.png| image:: pilatusMCA.png
-.. |pilatusThresholdScanSetup.png| image:: pilatusThresholdScanSetup.png
-.. |pilatusThresholdScanPlot.png| image:: pilatusThresholdScanPlot.png
-.. |pilatusAsyn.png| image:: pilatusAsyn.png
-.. |pilatusAsynOctet.png| image:: pilatusAsynOctet.png
-.. |pilatusSPEC.png| image:: pilatusSPEC.png
