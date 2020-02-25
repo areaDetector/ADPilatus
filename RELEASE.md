@@ -22,6 +22,12 @@ files respectively, in the configure/ directory of the appropriate release of th
 
 Release Notes
 =============
+R2-9 (24-February-2020)
+---
+* Fixed driver to move array counter increment to before setting NDArray UniqueId.
+* Changed documentation to .rst files on areaDetector.github.io.
+* Added .bob files for Phoebus Display Manager
+
 R2-8 (9-January-2020)
 ---
 * Fixed a serious bug in the readTiff function that could cause the driver to
