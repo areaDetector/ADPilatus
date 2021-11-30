@@ -1,6 +1,6 @@
 
 file {
-	name="/home/epics/devel/areaDetector-3-3-1/ADPilatus/pilatusApp/op/adl/pilatusDetector.adl"
+	name="/home/epics/devel/areaDetector-3-11/ADPilatus/pilatusApp/op/adl/pilatusDetector.adl"
 	version=030109
 }
 display {
@@ -1126,703 +1126,272 @@ text {
 	label="Reset"
 	press_msg="1"
 }
-composite {
+rectangle {
+	object {
+		x=375
+		y=457
+		width=109
+		height=21
+	}
+	"basic attribute" {
+		clr=2
+	}
+}
+text {
+	object {
+		x=409
+		y=457
+		width=41
+		height=20
+	}
+	"basic attribute" {
+		clr=54
+	}
+	textix="File"
+	align="horiz. centered"
+}
+text {
+	object {
+		x=377
+		y=583
+		width=143
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Auto increment"
+	align="horiz. right"
+}
+menu {
+	object {
+		x=530
+		y=583
+		width=66
+		height=20
+	}
+	control {
+		chan="$(P)$(R)AutoIncrement"
+		clr=14
+		bclr=51
+	}
+}
+"text update" {
+	object {
+		x=600
+		y=584
+		width=82
+		height=18
+	}
+	monitor {
+		chan="$(P)$(R)AutoIncrement_RBV"
+		clr=54
+		bclr=4
+	}
+	format="string"
+	limits {
+	}
+}
+text {
+	object {
+		x=408
+		y=557
+		width=112
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Next file #"
+	align="horiz. right"
+}
+"text entry" {
+	object {
+		x=530
+		y=556
+		width=61
+		height=22
+	}
+	control {
+		chan="$(P)$(R)FileNumber"
+		clr=14
+		bclr=51
+	}
+	limits {
+	}
+}
+"text update" {
+	object {
+		x=596
+		y=558
+		width=82
+		height=18
+	}
+	monitor {
+		chan="$(P)$(R)FileNumber_RBV"
+		clr=54
+		bclr=4
+	}
+	limits {
+	}
+}
+text {
+	object {
+		x=428
+		y=531
+		width=92
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="File name"
+	align="horiz. right"
+}
+"text entry" {
+	object {
+		x=529
+		y=531
+		width=530
+		height=20
+	}
+	control {
+		chan="$(P)$(R)FileName"
+		clr=14
+		bclr=51
+	}
+	format="string"
+	limits {
+	}
+}
+"text update" {
+	object {
+		x=529
+		y=508
+		width=511
+		height=18
+	}
+	monitor {
+		chan="$(P)$(R)FileName_RBV"
+		clr=54
+		bclr=4
+	}
+	format="string"
+	limits {
+	}
+}
+"text entry" {
+	object {
+		x=529
+		y=483
+		width=530
+		height=20
+	}
+	control {
+		chan="$(P)$(R)FilePath"
+		clr=14
+		bclr=51
+	}
+	format="string"
+	limits {
+	}
+}
+"text update" {
+	object {
+		x=529
+		y=460
+		width=395
+		height=18
+	}
+	monitor {
+		chan="$(P)$(R)FilePath_RBV"
+		clr=54
+		bclr=4
+	}
+	format="string"
+	limits {
+	}
+}
+text {
+	object {
+		x=428
+		y=483
+		width=92
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="File path"
+	align="horiz. right"
+}
+rectangle {
 	object {
 		x=360
 		y=450
-		width=690
-		height=480
+		width=705
+		height=205
 	}
-	"composite name"=""
-	children {
-		rectangle {
-			object {
-				x=658
-				y=691
-				width=105
-				height=21
-			}
-			"basic attribute" {
-				clr=2
-			}
-		}
-		rectangle {
-			object {
-				x=360
-				y=685
-				width=690
-				height=110
-			}
-			"basic attribute" {
-				clr=14
-				fill="outline"
-			}
-		}
-		text {
-			object {
-				x=679
-				y=691
-				width=60
-				height=20
-			}
-			"basic attribute" {
-				clr=54
-			}
-			textix="Status"
-			align="horiz. centered"
-		}
-		text {
-			object {
-				x=375
-				y=770
-				width=150
-				height=20
-			}
-			"basic attribute" {
-				clr=14
-			}
-			textix="From camserver:"
-			align="horiz. right"
-		}
-		"text update" {
-			object {
-				x=530
-				y=773
-				width=500
-				height=15
-			}
-			monitor {
-				chan="$(P)$(R)StringFromServer_RBV"
-				clr=14
-				bclr=51
-			}
-			format="string"
-			limits {
-			}
-		}
-		text {
-			object {
-				x=455
-				y=720
-				width=70
-				height=20
-			}
-			"basic attribute" {
-				clr=14
-			}
-			textix="Status:"
-			align="horiz. right"
-		}
-		"text update" {
-			object {
-				x=530
-				y=723
-				width=500
-				height=15
-			}
-			monitor {
-				chan="$(P)$(R)StatusMessage_RBV"
-				clr=14
-				bclr=51
-			}
-			format="string"
-			limits {
-			}
-		}
-		text {
-			object {
-				x=395
-				y=745
-				width=130
-				height=20
-			}
-			"basic attribute" {
-				clr=14
-			}
-			textix="To camserver:"
-			align="horiz. right"
-		}
-		"text update" {
-			object {
-				x=530
-				y=748
-				width=500
-				height=15
-			}
-			monitor {
-				chan="$(P)$(R)StringToServer_RBV"
-				clr=14
-				bclr=51
-			}
-			format="string"
-			limits {
-			}
-		}
-		rectangle {
-			object {
-				x=615
-				y=805
-				width=180
-				height=20
-			}
-			"basic attribute" {
-				clr=2
-			}
-		}
-		text {
-			object {
-				x=623
-				y=805
-				width=160
-				height=20
-			}
-			"basic attribute" {
-				clr=54
-			}
-			textix="Data corrections"
-			align="horiz. centered"
-		}
-		rectangle {
-			object {
-				x=360
-				y=800
-				width=690
-				height=130
-			}
-			"basic attribute" {
-				clr=14
-				fill="outline"
-			}
-		}
-		text {
-			object {
-				x=385
-				y=828
-				width=150
-				height=20
-			}
-			"basic attribute" {
-				clr=14
-			}
-			textix="Bad pixel file:"
-			align="horiz. right"
-		}
-		text {
-			object {
-				x=375
-				y=878
-				width=160
-				height=20
-			}
-			"basic attribute" {
-				clr=14
-			}
-			textix="Flat field file:"
-			align="horiz. right"
-		}
-		text {
-			object {
-				x=405
-				y=853
-				width=130
-				height=20
-			}
-			"basic attribute" {
-				clr=14
-			}
-			textix="# Bad pixels:"
-			align="horiz. right"
-		}
-		text {
-			object {
-				x=365
-				y=903
-				width=170
-				height=20
-			}
-			"basic attribute" {
-				clr=14
-			}
-			textix="Flat field valid:"
-			align="horiz. right"
-		}
-		"text entry" {
-			object {
-				x=540
-				y=828
-				width=500
-				height=20
-			}
-			control {
-				chan="$(P)$(R)BadPixelFile"
-				clr=14
-				bclr=51
-			}
-			format="string"
-			limits {
-			}
-		}
-		"text entry" {
-			object {
-				x=540
-				y=878
-				width=500
-				height=20
-			}
-			control {
-				chan="$(P)$(R)FlatFieldFile"
-				clr=14
-				bclr=51
-			}
-			format="string"
-			limits {
-			}
-		}
-		"text update" {
-			object {
-				x=540
-				y=854
-				width=80
-				height=18
-			}
-			monitor {
-				chan="$(P)$(R)NumBadPixels"
-				clr=14
-				bclr=51
-			}
-			align="horiz. centered"
-			limits {
-			}
-		}
-		"text update" {
-			object {
-				x=540
-				y=904
-				width=80
-				height=18
-			}
-			monitor {
-				chan="$(P)$(R)FlatFieldValid"
-				clr=14
-				bclr=51
-			}
-			align="horiz. centered"
-			format="string"
-			limits {
-			}
-		}
-		text {
-			object {
-				x=674
-				y=903
-				width=160
-				height=20
-			}
-			"basic attribute" {
-				clr=14
-			}
-			textix="Min. flat field:"
-			align="horiz. right"
-		}
-		"text entry" {
-			object {
-				x=837
-				y=903
-				width=100
-				height=20
-			}
-			control {
-				chan="$(P)$(R)MinFlatField"
-				clr=14
-				bclr=51
-			}
-			limits {
-			}
-		}
-		rectangle {
-			object {
-				x=375
-				y=457
-				width=109
-				height=21
-			}
-			"basic attribute" {
-				clr=2
-			}
-		}
-		text {
-			object {
-				x=409
-				y=457
-				width=41
-				height=20
-			}
-			"basic attribute" {
-				clr=54
-			}
-			textix="File"
-			align="horiz. centered"
-		}
-		text {
-			object {
-				x=388
-				y=656
-				width=133
-				height=20
-			}
-			"basic attribute" {
-				clr=14
-			}
-			textix="Last filename"
-			align="horiz. right"
-		}
-		"text update" {
-			object {
-				x=530
-				y=657
-				width=511
-				height=18
-			}
-			monitor {
-				chan="$(P)$(R)FullFileName_RBV"
-				clr=54
-				bclr=4
-			}
-			format="string"
-			limits {
-			}
-		}
-		text {
-			object {
-				x=367
-				y=631
-				width=153
-				height=20
-			}
-			"basic attribute" {
-				clr=14
-			}
-			textix="Filename format"
-			align="horiz. right"
-		}
-		"text update" {
-			object {
-				x=530
-				y=608
-				width=164
-				height=18
-			}
-			monitor {
-				chan="$(P)$(R)FileTemplate_RBV"
-				clr=54
-				bclr=4
-			}
-			format="string"
-			limits {
-			}
-		}
-		"text entry" {
-			object {
-				x=530
-				y=631
-				width=164
-				height=20
-			}
-			control {
-				chan="$(P)$(R)FileTemplate"
-				clr=14
-				bclr=51
-			}
-			format="string"
-			limits {
-			}
-		}
-		text {
-			object {
-				x=377
-				y=583
-				width=143
-				height=20
-			}
-			"basic attribute" {
-				clr=14
-			}
-			textix="Auto increment"
-			align="horiz. right"
-		}
-		menu {
-			object {
-				x=530
-				y=583
-				width=66
-				height=20
-			}
-			control {
-				chan="$(P)$(R)AutoIncrement"
-				clr=14
-				bclr=51
-			}
-		}
-		"text update" {
-			object {
-				x=600
-				y=584
-				width=82
-				height=18
-			}
-			monitor {
-				chan="$(P)$(R)AutoIncrement_RBV"
-				clr=54
-				bclr=4
-			}
-			format="string"
-			limits {
-			}
-		}
-		text {
-			object {
-				x=408
-				y=557
-				width=112
-				height=20
-			}
-			"basic attribute" {
-				clr=14
-			}
-			textix="Next file #"
-			align="horiz. right"
-		}
-		"text entry" {
-			object {
-				x=530
-				y=556
-				width=61
-				height=22
-			}
-			control {
-				chan="$(P)$(R)FileNumber"
-				clr=14
-				bclr=51
-			}
-			limits {
-			}
-		}
-		"text update" {
-			object {
-				x=596
-				y=558
-				width=82
-				height=18
-			}
-			monitor {
-				chan="$(P)$(R)FileNumber_RBV"
-				clr=54
-				bclr=4
-			}
-			limits {
-			}
-		}
-		text {
-			object {
-				x=428
-				y=531
-				width=92
-				height=20
-			}
-			"basic attribute" {
-				clr=14
-			}
-			textix="File name"
-			align="horiz. right"
-		}
-		"text entry" {
-			object {
-				x=529
-				y=531
-				width=511
-				height=20
-			}
-			control {
-				chan="$(P)$(R)FileName"
-				clr=14
-				bclr=51
-			}
-			format="string"
-			limits {
-			}
-		}
-		"text update" {
-			object {
-				x=529
-				y=508
-				width=511
-				height=18
-			}
-			monitor {
-				chan="$(P)$(R)FileName_RBV"
-				clr=54
-				bclr=4
-			}
-			format="string"
-			limits {
-			}
-		}
-		"text entry" {
-			object {
-				x=529
-				y=483
-				width=511
-				height=20
-			}
-			control {
-				chan="$(P)$(R)FilePath"
-				clr=14
-				bclr=51
-			}
-			format="string"
-			limits {
-			}
-		}
-		"text update" {
-			object {
-				x=529
-				y=460
-				width=395
-				height=18
-			}
-			monitor {
-				chan="$(P)$(R)FilePath_RBV"
-				clr=54
-				bclr=4
-			}
-			format="string"
-			limits {
-			}
-		}
-		text {
-			object {
-				x=428
-				y=483
-				width=92
-				height=20
-			}
-			"basic attribute" {
-				clr=14
-			}
-			textix="File path"
-			align="horiz. right"
-		}
-		rectangle {
-			object {
-				x=360
-				y=450
-				width=690
-				height=230
-			}
-			"basic attribute" {
-				clr=14
-				fill="outline"
-			}
-		}
-		text {
-			object {
-				x=742
-				y=631
-				width=112
-				height=20
-			}
-			"basic attribute" {
-				clr=14
-			}
-			textix="File format"
-			align="horiz. right"
-		}
-		"text update" {
-			object {
-				x=946
-				y=632
-				width=82
-				height=18
-			}
-			monitor {
-				chan="$(P)$(R)FileFormat_RBV"
-				clr=54
-				bclr=4
-			}
-			format="string"
-			limits {
-			}
-		}
-		menu {
-			object {
-				x=859
-				y=631
-				width=82
-				height=20
-			}
-			control {
-				chan="$(P)$(R)FileFormat"
-				clr=14
-				bclr=51
-			}
-		}
-		text {
-			object {
-				x=930
-				y=459
-				width=70
-				height=20
-			}
-			"basic attribute" {
-				clr=14
-			}
-			textix="Exists:"
-		}
-		"text update" {
-			object {
-				x=1005
-				y=459
-				width=40
-				height=20
-			}
-			monitor {
-				chan="$(P)$(R)FilePathExists_RBV"
-				clr=14
-				bclr=2
-			}
-			clrmod="alarm"
-			limits {
-			}
-		}
-		"related display" {
-			object {
-				x=924
-				y=583
-				width=70
-				height=20
-			}
-			display[0] {
-				label="Ancillary information"
-				name="pilatusAncillary.adl"
-				args="P=$(P),R=$(R)"
-			}
-			clr=14
-			bclr=51
-		}
-		text {
-			object {
-				x=705
-				y=583
-				width=210
-				height=20
-			}
-			"basic attribute" {
-				clr=14
-			}
-			textix="Ancillary information"
-			align="horiz. right"
-		}
+	"basic attribute" {
+		clr=14
+		fill="outline"
 	}
+}
+text {
+	object {
+		x=930
+		y=459
+		width=70
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Exists:"
+}
+"text update" {
+	object {
+		x=1005
+		y=459
+		width=40
+		height=20
+	}
+	monitor {
+		chan="$(P)$(R)FilePathExists_RBV"
+		clr=14
+		bclr=2
+	}
+	clrmod="alarm"
+	limits {
+	}
+}
+"related display" {
+	object {
+		x=924
+		y=583
+		width=70
+		height=20
+	}
+	display[0] {
+		label="Ancillary information"
+		name="pilatusAncillary.adl"
+		args="P=$(P),R=$(R)"
+	}
+	clr=14
+	bclr=51
+}
+text {
+	object {
+		x=705
+		y=583
+		width=210
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Ancillary information"
+	align="horiz. right"
 }
 composite {
 	object {
@@ -2054,4 +1623,382 @@ composite {
 	}
 	"composite name"=""
 	"composite file"="ADBuffers.adl"
+}
+text {
+	object {
+		x=388
+		y=633
+		width=133
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Last filename"
+	align="horiz. right"
+}
+"text update" {
+	object {
+		x=530
+		y=634
+		width=530
+		height=18
+	}
+	monitor {
+		chan="$(P)$(R)FullFileName_RBV"
+		clr=54
+		bclr=4
+	}
+	format="string"
+	limits {
+	}
+}
+text {
+	object {
+		x=367
+		y=608
+		width=153
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Filename format"
+	align="horiz. right"
+}
+"text update" {
+	object {
+		x=697
+		y=609
+		width=350
+		height=18
+	}
+	monitor {
+		chan="$(P)$(R)FileTemplate_RBV"
+		clr=54
+		bclr=4
+	}
+	format="string"
+	limits {
+	}
+}
+"text entry" {
+	object {
+		x=530
+		y=608
+		width=164
+		height=20
+	}
+	control {
+		chan="$(P)$(R)FileTemplate"
+		clr=14
+		bclr=51
+	}
+	format="string"
+	limits {
+	}
+}
+rectangle {
+	object {
+		x=658
+		y=666
+		width=105
+		height=21
+	}
+	"basic attribute" {
+		clr=2
+	}
+}
+rectangle {
+	object {
+		x=360
+		y=660
+		width=705
+		height=110
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+	}
+}
+text {
+	object {
+		x=679
+		y=666
+		width=60
+		height=20
+	}
+	"basic attribute" {
+		clr=54
+	}
+	textix="Status"
+	align="horiz. centered"
+}
+text {
+	object {
+		x=375
+		y=745
+		width=150
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="From camserver:"
+	align="horiz. right"
+}
+"text update" {
+	object {
+		x=530
+		y=748
+		width=530
+		height=15
+	}
+	monitor {
+		chan="$(P)$(R)StringFromServer_RBV"
+		clr=14
+		bclr=51
+	}
+	format="string"
+	limits {
+	}
+}
+text {
+	object {
+		x=455
+		y=695
+		width=70
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Status:"
+	align="horiz. right"
+}
+"text update" {
+	object {
+		x=530
+		y=698
+		width=530
+		height=15
+	}
+	monitor {
+		chan="$(P)$(R)StatusMessage_RBV"
+		clr=14
+		bclr=51
+	}
+	format="string"
+	limits {
+	}
+}
+text {
+	object {
+		x=395
+		y=720
+		width=130
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="To camserver:"
+	align="horiz. right"
+}
+"text update" {
+	object {
+		x=530
+		y=723
+		width=530
+		height=15
+	}
+	monitor {
+		chan="$(P)$(R)StringToServer_RBV"
+		clr=14
+		bclr=51
+	}
+	format="string"
+	limits {
+	}
+}
+rectangle {
+	object {
+		x=615
+		y=780
+		width=180
+		height=20
+	}
+	"basic attribute" {
+		clr=2
+	}
+}
+text {
+	object {
+		x=623
+		y=780
+		width=160
+		height=20
+	}
+	"basic attribute" {
+		clr=54
+	}
+	textix="Data corrections"
+	align="horiz. centered"
+}
+rectangle {
+	object {
+		x=360
+		y=775
+		width=705
+		height=130
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+	}
+}
+text {
+	object {
+		x=385
+		y=803
+		width=150
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Bad pixel file:"
+	align="horiz. right"
+}
+text {
+	object {
+		x=375
+		y=853
+		width=160
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Flat field file:"
+	align="horiz. right"
+}
+text {
+	object {
+		x=405
+		y=828
+		width=130
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="# Bad pixels:"
+	align="horiz. right"
+}
+text {
+	object {
+		x=365
+		y=878
+		width=170
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Flat field valid:"
+	align="horiz. right"
+}
+"text entry" {
+	object {
+		x=540
+		y=803
+		width=520
+		height=20
+	}
+	control {
+		chan="$(P)$(R)BadPixelFile"
+		clr=14
+		bclr=51
+	}
+	format="string"
+	limits {
+	}
+}
+"text entry" {
+	object {
+		x=540
+		y=853
+		width=520
+		height=20
+	}
+	control {
+		chan="$(P)$(R)FlatFieldFile"
+		clr=14
+		bclr=51
+	}
+	format="string"
+	limits {
+	}
+}
+"text update" {
+	object {
+		x=540
+		y=829
+		width=80
+		height=18
+	}
+	monitor {
+		chan="$(P)$(R)NumBadPixels"
+		clr=14
+		bclr=51
+	}
+	align="horiz. centered"
+	limits {
+	}
+}
+"text update" {
+	object {
+		x=540
+		y=879
+		width=80
+		height=18
+	}
+	monitor {
+		chan="$(P)$(R)FlatFieldValid"
+		clr=14
+		bclr=51
+	}
+	align="horiz. centered"
+	format="string"
+	limits {
+	}
+}
+text {
+	object {
+		x=674
+		y=878
+		width=160
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Min. flat field:"
+	align="horiz. right"
+}
+"text entry" {
+	object {
+		x=837
+		y=878
+		width=100
+		height=20
+	}
+	control {
+		chan="$(P)$(R)MinFlatField"
+		clr=14
+		bclr=51
+	}
+	limits {
+	}
 }
