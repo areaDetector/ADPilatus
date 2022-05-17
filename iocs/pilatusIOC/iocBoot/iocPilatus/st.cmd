@@ -28,7 +28,7 @@ drvAsynIPPortConfigure("camserver","gse-pilatus1:41234")
 #asynSetTraceIOMask("camserver",0,2)
 #asynSetTraceMask("camserver",0,9)
 # Set the input and output terminators.
-asynOctetSetInputEos("camserver", 0, "\030")
+asynOctetSetInputEos("camserver", 0, "\0x18")
 asynOctetSetOutputEos("camserver", 0, "\n")
 
 pilatusDetectorConfig("$(PORT)", "camserver", $(XSIZE), $(YSIZE), 0, 0)
