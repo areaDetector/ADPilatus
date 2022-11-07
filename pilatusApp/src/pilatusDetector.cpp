@@ -229,7 +229,9 @@ protected:
     double demandedThreshold;
     double demandedEnergy;
     int firstStatusCall;
-    double camserverVersion;
+    int camserverMajor;
+    int camserverMinor;
+    int camserverPatch;
 };
 
 void pilatusDetector::readBadPixelFile(const char *badPixelFile)
@@ -894,10 +896,10 @@ asynStatus pilatusDetector::resetModulePower()
     static const char *functionName="resetModulePower";
 
     // This command only exists on camserver 7.9.0 and higher
-    if (camserverVersion < 7.9) {
+    if ((camserverMajor < 7) || ((camserverMajor == 7) && (camserverMinor < 9))) {
         asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-            "%s::%s ResetModulePower not supported on version %f of camserver\n",
-            driverName, functionName, camserverVersion);
+            "%s::%s ResetModulePower not supported on version %d.%d.%d of camserver\n",
+            driverName, functionName, camserverMajor, camserverMinor, camserverPatch);
         return asynError;
     }
     setStringParam(ADStatusMessage, "Resetting module power");
@@ -1319,7 +1321,7 @@ asynStatus pilatusDetector::pilatusStatus()
       setStringParam(PilatusTvxVersion, substr);
       setStringParam(ADSDKVersion, substr);
       if (substr[0] == 't') substr += 4;
-      sscanf(substr, "%lf", &camserverVersion);
+      sscanf(substr, "%d.%d.%d", &camserverMajor, &camserverMinor, &camserverPatch);
       setIntegerParam(ADStatus, ADStatusIdle);
     } else {
       setIntegerParam(ADStatus, ADStatusError);
