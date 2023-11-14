@@ -1184,6 +1184,9 @@ void pilatusDetector::pilatusTask()
             getIntegerParam(NDArrayCallbacks, &arrayCallbacks);
 
             if (arrayCallbacks) {
+                // get the start time from EPICS for each frame
+                epicsTimeGetCurrent(&startTime);
+
                 /* Get an image buffer from the pool */
                 getIntegerParam(ADMaxSizeX, &itemp); dims[0] = itemp;
                 getIntegerParam(ADMaxSizeY, &itemp); dims[1] = itemp;
