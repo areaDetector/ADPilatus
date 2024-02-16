@@ -1161,7 +1161,16 @@ void pilatusDetector::pilatusTask()
                 setStringParam(ADStatusMessage, "Waiting for 7OK response");
                 callParamCallbacks();
                 timeout = ((numExposures-1) * acquirePeriod) + acquireTime;
-                status = readCamserver(timeout + CAMSERVER_ACQUIRE_TIMEOUT);
+
+                /* Ignore all messages other than 7 OK. Sometimes, a 15 OK is stuck beforehand
+                 * end prematurely ends the acquisition */
+                int maxtrials = 5;
+                do {
+                    status = readCamserver(timeout + CAMSERVER_ACQUIRE_TIMEOUT);
+                    maxtrials--;
+                } while ((strncmp(this->fromCamserver, "7 OK", 4) != 0) && maxtrials > 0);
+
+
                 /* If there was an error jump to bottom of loop */
                 if (status) {
                     acquire = 0;
