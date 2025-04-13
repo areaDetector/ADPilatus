@@ -6,8 +6,6 @@ include $(TOP)/configure/CONFIG
 LIBRARY_IOC_Linux = pilatusDetector
 LIBRARY_IOC_Darwin = pilatusDetector
 
-USR_INCLUDES += -I$(TOP)/pilatusApp/cbfSrc
-
 LIB_SRCS += pilatusDetector.cpp
 
 DBD += pilatusDetectorSupport.dbd
