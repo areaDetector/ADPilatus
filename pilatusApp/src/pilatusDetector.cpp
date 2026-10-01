@@ -1725,7 +1725,7 @@ pilatusDetector::pilatusDetector(const char *portName, const char *camserverPort
     dims[0] = maxSizeX;
     dims[1] = maxSizeY;
     /* Allocate the raw buffer we use for flat fields. */
-    this->pFlatField = this->pNDArrayPool->alloc(2, dims, NDUInt32, 0, NULL);
+    this->pFlatField = this->pNDArrayPool->alloc(2, dims, NDInt32, 0, NULL);
     
     /* Connect to camserver */
     status = pasynOctetSyncIO->connect(camserverPort, 0, &this->pasynUserCamserver, NULL);
@@ -1793,7 +1793,7 @@ pilatusDetector::pilatusDetector(const char *portName, const char *camserverPort
     status |= setIntegerParam(NDArraySizeX, maxSizeX);
     status |= setIntegerParam(NDArraySizeY, maxSizeY);
     status |= setIntegerParam(NDArraySize, 0);
-    status |= setIntegerParam(NDDataType,  NDUInt32);
+    status |= setIntegerParam(NDDataType,  NDInt32);
     status |= setIntegerParam(ADImageMode, ADImageContinuous);
     status |= setIntegerParam(ADTriggerMode, TMInternal);
 

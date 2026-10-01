@@ -545,10 +545,6 @@ record(mbbo, "$(P)$(R)DataType")
 {
     field(DISA, "1")
 }
-record(mbbi, "$(P)$(R)DataType_RBV")
-{
-    field(DISA, "1")
-}
 record(mbbo, "$(P)$(R)ColorMode")
 {
     field(DISA, "1")

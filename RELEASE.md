@@ -22,6 +22,17 @@ files respectively, in the configure/ directory of the appropriate release of th
 
 Release Notes
 =============
+R2-10 (XX-Aug-2026)
+---
+* Remove FileFormat widgets from OPI screens, layout tweaks.
+* Change example IOC startup to use octal hex escape character.
+* Fix problem parsing camserver version that prevents power-cycle command from working on camserver 7.10 and higher.
+* Fix error in asynOctetSetInputEos in example IOC startup.
+* Update docs link.
+* Change to new updateTimeStamps() method.
+* Allow for overriding config site file with a .local variant.
+* Re-enable data type readback PV.
+
 R2-9 (24-February-2020)
 ---
 * Fixed driver to move array counter increment to before setting NDArray UniqueId.
