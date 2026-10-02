@@ -22,7 +22,7 @@ files respectively, in the configure/ directory of the appropriate release of th
 
 Release Notes
 =============
-R2-10 (XX-Aug-2026)
+R2-10 (02-October-2026)
 ---
 * Remove FileFormat widgets from OPI screens, layout tweaks.
 * Change example IOC startup to use octal hex escape character.
