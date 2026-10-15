@@ -20,7 +20,11 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#ifdef CBF_EXTERNAL
+#include <cbf.h>
+#else
 #include <cbf_ad.h>
+#endif
 #include <tiffio.h>
 
 #include <epicsTime.h>
@@ -525,8 +529,11 @@ asynStatus pilatusDetector::readCbf(const char *fileName, epicsTimeStamp *pStart
         return((asynStatus)status);
     }
 
+#ifndef CBF_EXTERNAL
+    /* Only available in the patched CBFlib bundled with ADSupport */
     cbf_set_warning_messages_enabled(0);
     cbf_set_error_messages_enabled(0);
+#endif
 
     while (deltaTime <= timeout) {
         /* At this point we know the file exists, but it may not be completely

@@ -16,7 +16,11 @@ PROD_SRCS += $(PROD_NAME)_registerRecordDeviceDriver.cpp $(PROD_NAME)Main.cpp
 
 # Add locally compiled object code
 PROD_LIBS += pilatusDetector
-PROD_LIBS += cbfad
+ifeq ($(CBF_EXTERNAL), YES)
+  PROD_SYS_LIBS += cbf
+else
+  PROD_LIBS += cbfad
+endif
 
 include $(ADCORE)/ADApp/commonDriverMakefile
 $(PROD_NAME)_DBD += drvAsynIPPort.dbd
