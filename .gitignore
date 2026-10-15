@@ -9,7 +9,7 @@ envPaths*
 cdCommands
 dllPath.bat
 auto_settings.sav*
-configure/*.local
+*.local
 O.*/
 *~
 *.swp
